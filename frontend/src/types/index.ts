@@ -1,3 +1,12 @@
+export type IdeaCategory =
+  | 'ai'
+  | 'saas'
+  | 'ecommerce'
+  | 'fintech'
+  | 'health'
+  | 'education'
+  | 'entertainment'
+
 export interface Idea {
   id: string
   title: string
@@ -6,6 +15,8 @@ export interface Idea {
   timeAgo: string
   score: number
   isTrending?: boolean
+  category: IdeaCategory
+  createdAt: string // ISO date string
   metrics: {
     marketSize: number
     competition: number
@@ -18,6 +29,17 @@ export interface Idea {
     margin: number // процент 0-100
     arr: number // годовой доход в долларах
   }
+}
+
+// Названия категорий на русском
+export const categoryLabels: Record<IdeaCategory, string> = {
+  ai: 'Искусственный интеллект',
+  saas: 'SaaS',
+  ecommerce: 'E-commerce',
+  fintech: 'Финтех',
+  health: 'Здоровье',
+  education: 'Образование',
+  entertainment: 'Развлечения',
 }
 
 export interface Project {

@@ -1,11 +1,15 @@
-import { MessageCircle, FileText, TrendingUp, Users, DollarSign, Clock } from 'lucide-react'
+import { MessageCircle, FileText, TrendingUp, Users, DollarSign, Clock, Heart, X } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { Idea } from '../../types'
+import { Idea, categoryLabels } from '../../types'
 
 interface IdeaCardProps {
   idea: Idea
   onChatClick?: () => void
   onDetailsClick?: () => void
+  onLike?: (id: string) => void
+  onDislike?: (id: string) => void
+  isLiked?: boolean
+  showActions?: boolean
 }
 
 // Система рейтинга с понятными русскими названиями
@@ -50,6 +54,10 @@ export default function IdeaCard({
   idea,
   onChatClick,
   onDetailsClick,
+  onLike,
+  onDislike,
+  isLiked = false,
+  showActions = true,
 }: IdeaCardProps) {
   const rating = getRating(idea.score)
 
@@ -57,35 +65,76 @@ export default function IdeaCard({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -100, scale: 0.9 }}
       whileHover={{ y: -4 }}
       className={`relative bg-surface border border-border ${rating.borderColor} border-l-4 rounded-lg p-4 transition-smooth hover:shadow-lg cursor-pointer`}
       onClick={onDetailsClick}
     >
+      {/* Like/Dislike buttons - top right */}
+      {showActions && (
+        <div className="absolute top-2 right-2 flex gap-1 z-10">
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onDislike?.(idea.id)
+            }}
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-background border border-border text-text-tertiary hover:text-red-500 hover:border-red-500 transition-colors"
+            title="Скрыть"
+          >
+            <X className="w-4 h-4" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onLike?.(idea.id)
+            }}
+            className={`w-8 h-8 flex items-center justify-center rounded-full border transition-colors ${
+              isLiked
+                ? 'bg-red-500 border-red-500 text-white'
+                : 'bg-background border-border text-text-tertiary hover:text-red-500 hover:border-red-500'
+            }`}
+            title={isLiked ? 'Убрать из избранного' : 'В избранное'}
+          >
+            <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
+          </button>
+        </div>
+      )}
+
       {/* Заголовок с эмодзи и рейтингом */}
-      <div className="flex items-start justify-between gap-3 mb-3">
+      <div className="flex items-start justify-between gap-3 mb-3 pr-20">
         <div className="flex-1 min-w-0">
           <h3 className="text-base font-bold text-text-primary leading-tight mb-1">
             <span className="mr-1.5">{idea.emoji}</span>
             {idea.title}
           </h3>
-          <div className="text-xs text-text-tertiary">
-            {idea.source} • {idea.timeAgo}
+          <div className="flex items-center gap-2 text-xs text-text-tertiary flex-wrap">
+            <span>{idea.source}</span>
+            <span>•</span>
+            <span>{idea.timeAgo}</span>
+            {idea.category && (
+              <>
+                <span>•</span>
+                <span className="bg-background px-1.5 py-0.5 rounded text-text-secondary">
+                  {categoryLabels[idea.category]}
+                </span>
+              </>
+            )}
           </div>
         </div>
+      </div>
 
-        {/* Рейтинг-бейдж с понятным текстом */}
+      {/* Score + Rating badge */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-baseline gap-2">
+          <span className="text-3xl font-extrabold text-text-primary">
+            {idea.score.toFixed(1)}
+          </span>
+          <span className="text-sm text-text-tertiary">из 10</span>
+        </div>
         <div className={`${rating.bgColor} ${rating.textColor} px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1`}>
           <span>{rating.emoji}</span>
           <span>{rating.label}</span>
         </div>
-      </div>
-
-      {/* Большой Score */}
-      <div className="flex items-baseline gap-2 mb-4">
-        <span className="text-3xl font-extrabold text-text-primary">
-          {idea.score.toFixed(1)}
-        </span>
-        <span className="text-sm text-text-tertiary">из 10 баллов</span>
       </div>
 
       {/* Метрики в виде сетки */}

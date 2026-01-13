@@ -1,14 +1,31 @@
 import { Idea, Project } from '../types'
 
+// Генерация даты для демо (от 0 до N дней назад)
+const daysAgo = (days: number): string => {
+  const date = new Date()
+  date.setDate(date.getDate() - days)
+  return date.toISOString()
+}
+
+const timeAgoText = (days: number): string => {
+  if (days === 0) return 'Сегодня'
+  if (days === 1) return 'Вчера'
+  if (days < 7) return `${days} дн. назад`
+  if (days < 30) return `${Math.floor(days / 7)} нед. назад`
+  return `${Math.floor(days / 30)} мес. назад`
+}
+
 export const mockIdeas: Idea[] = [
   {
     id: '1',
     title: 'AI-помощник для планирования питания',
     emoji: '🍽️',
     source: 'Тренд: FoodTech',
-    timeAgo: '2 часа назад',
+    timeAgo: timeAgoText(0),
+    createdAt: daysAgo(0),
     score: 8.4,
     isTrending: true,
+    category: 'ai',
     metrics: {
       marketSize: 8,
       competition: 6,
@@ -27,9 +44,11 @@ export const mockIdeas: Idea[] = [
     title: 'Платформа автоматизации без кода',
     emoji: '⚡',
     source: 'Тренд: No-Code',
-    timeAgo: '5 часов назад',
+    timeAgo: timeAgoText(1),
+    createdAt: daysAgo(1),
     score: 9.1,
-    isTrending: false,
+    isTrending: true,
+    category: 'saas',
     metrics: {
       marketSize: 9.5,
       competition: 7,
@@ -48,9 +67,11 @@ export const mockIdeas: Idea[] = [
     title: 'Телемедицина для домашних питомцев',
     emoji: '🐾',
     source: 'Тренд: PetTech',
-    timeAgo: '1 день назад',
+    timeAgo: timeAgoText(2),
+    createdAt: daysAgo(2),
     score: 7.8,
-    isTrending: true,
+    isTrending: false,
+    category: 'health',
     metrics: {
       marketSize: 7.5,
       competition: 5.5,
@@ -62,6 +83,167 @@ export const mockIdeas: Idea[] = [
       paybackMonths: 6,
       margin: 52,
       arr: 95000,
+    },
+  },
+  {
+    id: '4',
+    title: 'AI-репетитор для школьников',
+    emoji: '📚',
+    source: 'Тренд: EdTech',
+    timeAgo: timeAgoText(3),
+    createdAt: daysAgo(3),
+    score: 8.7,
+    isTrending: true,
+    category: 'education',
+    metrics: {
+      marketSize: 9,
+      competition: 6,
+      demand: 9,
+      monetization: 7.5,
+    },
+    financial: {
+      investment: 60000,
+      paybackMonths: 10,
+      margin: 72,
+      arr: 280000,
+    },
+  },
+  {
+    id: '5',
+    title: 'Криптокошелек с AI-аналитикой',
+    emoji: '💳',
+    source: 'Тренд: DeFi',
+    timeAgo: timeAgoText(4),
+    createdAt: daysAgo(4),
+    score: 7.2,
+    isTrending: false,
+    category: 'fintech',
+    metrics: {
+      marketSize: 8,
+      competition: 8,
+      demand: 7,
+      monetization: 7,
+    },
+    financial: {
+      investment: 150000,
+      paybackMonths: 18,
+      margin: 65,
+      arr: 420000,
+    },
+  },
+  {
+    id: '6',
+    title: 'Маркетплейс локальных фермеров',
+    emoji: '🥬',
+    source: 'Тренд: Sustainability',
+    timeAgo: timeAgoText(5),
+    createdAt: daysAgo(5),
+    score: 7.5,
+    isTrending: false,
+    category: 'ecommerce',
+    metrics: {
+      marketSize: 7,
+      competition: 5,
+      demand: 8,
+      monetization: 7,
+    },
+    financial: {
+      investment: 35000,
+      paybackMonths: 9,
+      margin: 45,
+      arr: 120000,
+    },
+  },
+  {
+    id: '7',
+    title: 'Платформа для стриминга подкастов',
+    emoji: '🎙️',
+    source: 'Тренд: Creator Economy',
+    timeAgo: timeAgoText(6),
+    createdAt: daysAgo(6),
+    score: 6.8,
+    isTrending: false,
+    category: 'entertainment',
+    metrics: {
+      marketSize: 7,
+      competition: 7.5,
+      demand: 7,
+      monetization: 6,
+    },
+    financial: {
+      investment: 80000,
+      paybackMonths: 16,
+      margin: 55,
+      arr: 180000,
+    },
+  },
+  {
+    id: '8',
+    title: 'CRM для малого бизнеса с AI',
+    emoji: '📊',
+    source: 'Тренд: SMB Tools',
+    timeAgo: timeAgoText(7),
+    createdAt: daysAgo(7),
+    score: 8.2,
+    isTrending: true,
+    category: 'saas',
+    metrics: {
+      marketSize: 8.5,
+      competition: 7,
+      demand: 8.5,
+      monetization: 8,
+    },
+    financial: {
+      investment: 95000,
+      paybackMonths: 12,
+      margin: 75,
+      arr: 350000,
+    },
+  },
+  {
+    id: '9',
+    title: 'Приложение для ментального здоровья',
+    emoji: '🧘',
+    source: 'Тренд: Mental Health',
+    timeAgo: timeAgoText(10),
+    createdAt: daysAgo(10),
+    score: 8.0,
+    isTrending: false,
+    category: 'health',
+    metrics: {
+      marketSize: 8,
+      competition: 6.5,
+      demand: 9,
+      monetization: 7.5,
+    },
+    financial: {
+      investment: 55000,
+      paybackMonths: 11,
+      margin: 68,
+      arr: 220000,
+    },
+  },
+  {
+    id: '10',
+    title: 'AI-генератор контента для соцсетей',
+    emoji: '✍️',
+    source: 'Тренд: Content Creation',
+    timeAgo: timeAgoText(14),
+    createdAt: daysAgo(14),
+    score: 8.9,
+    isTrending: true,
+    category: 'ai',
+    metrics: {
+      marketSize: 9,
+      competition: 7.5,
+      demand: 9.5,
+      monetization: 8.5,
+    },
+    financial: {
+      investment: 40000,
+      paybackMonths: 6,
+      margin: 82,
+      arr: 400000,
     },
   },
 ]
