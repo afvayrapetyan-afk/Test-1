@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from app.core.database import get_db
 from app.modules.ideas.service import IdeaService
 from app.modules.ideas.schemas import (
-    IdeaCreate, IdeaUpdate, IdeaOut, IdeaDetailedOut, IdeaList, IdeaStats
+    IdeaCreate, IdeaUpdate, IdeaOut, IdeaDetailedOut, IdeaList, IdeaListFrontend, IdeaStats
 )
 
 router = APIRouter()
@@ -22,7 +22,7 @@ class AnalyzeRequest(BaseModel):
     trend_ids: List[int]
 
 
-@router.get("/", response_model=IdeaList)
+@router.get("/", response_model=IdeaListFrontend)
 async def get_ideas(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),

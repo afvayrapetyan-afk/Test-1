@@ -135,10 +135,10 @@ class Idea(Base):
             "timeAgo": time_ago,
             "createdAt": self.analyzed_at.isoformat() if self.analyzed_at else None,
             "metrics": {
-                "marketSize": self.market_size_score or 0,
-                "competition": self.competition_score or 0,
-                "demand": self.demand_score or 0,
-                "monetization": self.monetization_score or 0,
+                "marketSize": round((self.market_size_score or 0) / 10, 1),
+                "competition": round((self.competition_score or 0) / 10, 1),
+                "demand": round((self.demand_score or 0) / 10, 1),
+                "monetization": round((self.monetization_score or 0) / 10, 1),
             },
             "financial": {
                 "investment": self.investment or 50000,  # Default $50K

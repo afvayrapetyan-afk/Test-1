@@ -107,15 +107,51 @@ class IdeaUpdate(BaseModel):
         return v
 
 
+class IdeaMetrics(BaseModel):
+    """Frontend-compatible metrics"""
+    marketSize: float
+    competition: float
+    demand: float
+    monetization: float
+
+
+class IdeaFinancial(BaseModel):
+    """Financial projections"""
+    investment: int
+    paybackMonths: int
+    margin: int
+    arr: int
+
+
+class IdeaFrontendOut(BaseModel):
+    """Schema for idea output - Frontend format"""
+    id: str
+    title: str
+    description: Optional[str] = None
+    emoji: str
+    source: str
+    category: str
+    isTrending: bool
+    score: float
+    timeAgo: str
+    createdAt: Optional[str] = None
+    metrics: IdeaMetrics
+    financial: IdeaFinancial
+    status: str
+
+    class Config:
+        from_attributes = True
+
+
 class IdeaOut(IdeaBase):
-    """Schema for idea output (simple)"""
+    """Schema for idea output (simple) - Legacy format"""
     id: int
-    market_size_score: Optional[int]
-    competition_score: Optional[int]
-    demand_score: Optional[int]
-    monetization_score: Optional[int]
-    feasibility_score: Optional[int]
-    time_to_market_score: Optional[int]
+    market_size_score: Optional[int] = None
+    competition_score: Optional[int] = None
+    demand_score: Optional[int] = None
+    monetization_score: Optional[int] = None
+    feasibility_score: Optional[int] = None
+    time_to_market_score: Optional[int] = None
     total_score: int
     status: str
     analyzed_at: datetime
@@ -138,8 +174,17 @@ class IdeaDetailedOut(IdeaBase):
         from_attributes = True
 
 
+class IdeaListFrontend(BaseModel):
+    """Paginated list of ideas - Frontend format"""
+    items: List[IdeaFrontendOut]
+    total: int
+    skip: int
+    limit: int
+    has_more: bool
+
+
 class IdeaList(BaseModel):
-    """Paginated list of ideas"""
+    """Paginated list of ideas - Legacy format"""
     items: List[IdeaOut]
     total: int
     skip: int
