@@ -40,11 +40,11 @@ class TrendOut(TrendBase):
     engagement_score: int
     velocity: float
     discovered_at: datetime
-    metadata: Dict[str, Any] = Field(alias="extra_metadata")
+    extra_metadata: Dict[str, Any] = Field(serialization_alias="metadata")
 
     class Config:
         from_attributes = True  # Pydantic v2 (was orm_mode in v1)
-        populate_by_name = True  # Allow using field name or alias
+        populate_by_name = True  # Allow field name or serialization alias
 
 
 class TrendList(BaseModel):

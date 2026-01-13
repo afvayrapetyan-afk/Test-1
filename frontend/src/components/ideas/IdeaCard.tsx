@@ -30,8 +30,9 @@ export default function IdeaCard({
     >
       {/* Trending Badge */}
       {idea.isTrending && (
-        <div className="absolute top-2 right-2 bg-gradient-to-r from-orange-400 to-red-500 text-white px-2.5 py-1 rounded-full text-[11px] font-bold flex items-center gap-1 animate-pulse-subtle">
-          🔥 TRENDING
+        <div className="absolute top-2 right-2 bg-gradient-to-r from-orange-400 to-red-500 text-white px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-bold flex items-center gap-0.5 sm:gap-1 animate-pulse-subtle z-10">
+          <span className="hidden xs:inline">🔥</span>
+          <span className="whitespace-nowrap">TRENDING</span>
         </div>
       )}
 
@@ -39,7 +40,7 @@ export default function IdeaCard({
       <div className="absolute left-0 top-0 h-full w-1 bg-accent-blue scale-y-0 group-hover:scale-y-100 transition-transform origin-top" />
 
       {/* Header */}
-      <div className="mb-2">
+      <div className={`mb-2 ${idea.isTrending ? 'pr-20 sm:pr-24' : ''}`}>
         <h3 className="text-sm sm:text-base font-semibold mb-1 flex items-center gap-1">
           <span>{idea.emoji}</span>
           <span className="break-words">{idea.title}</span>
@@ -135,10 +136,10 @@ interface MetricBarProps {
 
 function MetricBar({ label, value }: MetricBarProps) {
   return (
-    <div className="flex items-center justify-between text-[13px]">
-      <span className="text-text-secondary">{label}</span>
-      <div className="flex items-center gap-1">
-        <div className="w-[100px] h-1.5 bg-border rounded-full overflow-hidden">
+    <div className="flex items-center justify-between gap-2 text-xs sm:text-[13px]">
+      <span className="text-text-secondary whitespace-nowrap flex-shrink-0">{label}</span>
+      <div className="flex items-center gap-1 flex-1 min-w-0">
+        <div className="flex-1 h-1.5 bg-border rounded-full overflow-hidden min-w-[60px]">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${value * 10}%` }}
@@ -146,7 +147,7 @@ function MetricBar({ label, value }: MetricBarProps) {
             className="h-full bg-gradient-to-r from-accent-blue to-accent-purple rounded-full"
           />
         </div>
-        <span className="font-semibold text-text-primary w-8 text-right">
+        <span className="font-semibold text-text-primary w-7 sm:w-8 text-right whitespace-nowrap text-[11px] sm:text-xs">
           {value}/10
         </span>
       </div>
@@ -168,12 +169,12 @@ function FinancialMetric({
   valueClass = '',
 }: FinancialMetricProps) {
   return (
-    <div className="text-center">
-      <div className="text-[11px] text-text-secondary uppercase tracking-wide font-semibold mb-1">
+    <div className="text-center px-1">
+      <div className="text-[10px] sm:text-[11px] text-text-secondary uppercase tracking-wide font-semibold mb-1 break-words">
         {label}
       </div>
-      <div className={`text-base font-bold ${valueClass}`}>{value}</div>
-      <div className="text-[10px] text-text-tertiary mt-0.5">{subtitle}</div>
+      <div className={`text-sm sm:text-base font-bold ${valueClass} break-words`}>{value}</div>
+      <div className="text-[9px] sm:text-[10px] text-text-tertiary mt-0.5 break-words">{subtitle}</div>
     </div>
   )
 }
