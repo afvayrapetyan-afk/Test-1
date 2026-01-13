@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { API_ENDPOINTS } from '../config/api'
+import { mockIdeaDetails } from '../data/mockData'
 
 interface IdeaDetail {
   id: number
@@ -32,14 +33,38 @@ export default function IdeaDetail() {
     const fetchIdea = async () => {
       try {
         setLoading(true)
+
+        // Проверяем, есть ли mock данные для этого ID
+        const isLocalhost = API_ENDPOINTS.ideas.list.includes('localhost')
+        const mockIdea = mockIdeaDetails[id || '']
+
+        // Если localhost или есть mock данные, используем их
+        if (isLocalhost && mockIdea) {
+          setIdea(mockIdea)
+          setLoading(false)
+          return
+        }
+
         const response = await fetch(`${API_ENDPOINTS.ideas.get(Number(id))}`)
         if (!response.ok) {
+          // Пробуем mock данные при ошибке
+          if (mockIdea) {
+            setIdea(mockIdea)
+            setLoading(false)
+            return
+          }
           throw new Error('Идея не найдена')
         }
         const data = await response.json()
         setIdea(data)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Ошибка загрузки')
+        // Пробуем mock данные при ошибке
+        const mockIdea = mockIdeaDetails[id || '']
+        if (mockIdea) {
+          setIdea(mockIdea)
+        } else {
+          setError(err instanceof Error ? err.message : 'Ошибка загрузки')
+        }
       } finally {
         setLoading(false)
       }
