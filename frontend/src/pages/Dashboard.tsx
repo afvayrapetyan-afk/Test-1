@@ -3,7 +3,7 @@ import IdeaCard from '../components/ideas/IdeaCard'
 import TrendChart from '../components/charts/TrendChart'
 import HeroSection from '../components/hero/HeroSection'
 import { BarChart3, Briefcase, Code, Sparkles } from 'lucide-react'
-import { mockProjects } from '../data/mockData'
+import { mockProjects, mockIdeas } from '../data/mockData'
 import { useChat } from '../contexts/ChatContext'
 import { useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
@@ -15,6 +15,7 @@ export default function Dashboard() {
   const [ideas, setIdeas] = useState<any[]>([])
   const [trends, setTrends] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [useMockData, setUseMockData] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -27,10 +28,19 @@ export default function Dashboard() {
         const trendsResponse = await fetch(API_ENDPOINTS.trends.list)
         const trendsData = await trendsResponse.json()
 
-        setIdeas(ideasData.items || [])
+        // Если есть данные с API, используем их
+        if (ideasData.items && ideasData.items.length > 0) {
+          setIdeas(ideasData.items)
+        } else {
+          // Fallback на mock данные
+          setIdeas([])
+          setUseMockData(true)
+        }
         setTrends(trendsData.items || [])
       } catch (error) {
         console.error('Error loading data:', error)
+        // При ошибке API используем mock данные
+        setUseMockData(true)
       } finally {
         setLoading(false)
       }
@@ -116,7 +126,7 @@ export default function Dashboard() {
             onClick={handleViewAllIdeas}
             className="text-sm font-medium text-accent-blue hover:text-accent-purple transition-colors"
           >
-            Смотреть все ({ideas.length})
+            Смотреть все ({useMockData ? mockIdeas.length : ideas.length})
           </button>
         </div>
 
@@ -124,6 +134,24 @@ export default function Dashboard() {
           <div className="flex items-center justify-center py-8">
             <div className="text-text-secondary">Загрузка данных...</div>
           </div>
+        ) : useMockData ? (
+          <>
+            <div className="bg-accent-blue/10 border border-accent-blue/20 rounded-lg p-3 mb-4">
+              <p className="text-sm text-accent-blue">
+                📌 Демо-режим: показаны примеры карточек. Подключите бэкенд для реальных данных.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {mockIdeas.map((idea) => (
+                <IdeaCard
+                  key={idea.id}
+                  idea={idea}
+                  onChatClick={handleChatClick}
+                  onDetailsClick={() => handleDetailsClick(idea.id)}
+                />
+              ))}
+            </div>
+          </>
         ) : ideas.length === 0 ? (
           <div className="flex items-center justify-center py-8">
             <div className="text-text-secondary">Нет данных. Запустите demo.py для генерации идей.</div>
