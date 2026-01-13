@@ -137,36 +137,56 @@ class IdeaAnalystAgent(BaseAgent):
         Returns dict with idea data and scores
         """
         prompt = f"""
-        Analyze this trend and generate a viable business idea:
+        Проведи ГЛУБОКИЙ анализ этого тренда и создай продуманную бизнес-идею:
 
-        **Trend:**
-        - Title: {trend.title}
-        - Description: {trend.description}
-        - Source: {trend.source}
-        - Category: {trend.category}
-        - Engagement: {trend.engagement_score}
-        - Tags: {', '.join(trend.tags) if trend.tags else 'N/A'}
+        **Тренд:**
+        - Название: {trend.title}
+        - Описание: {trend.description}
+        - Источник: {trend.source}
+        - Категория: {trend.category}
+        - Популярность: {trend.engagement_score}
+        - Теги: {', '.join(trend.tags) if trend.tags else 'N/A'}
 
-        **Your Task:**
-        1. Generate a specific, actionable business idea based on this trend
-        2. Score it on 6 metrics (0-100 scale):
-           - market_size: Total addressable market potential
-           - competition: Existing competition level (lower score = more competition)
-           - demand: Current demand and pain point severity
-           - monetization: Revenue potential and business model viability
-           - feasibility: Technical and operational feasibility
-           - time_to_market: Speed of MVP development (higher = faster)
+        **Требования к анализу:**
 
-        3. Provide detailed reasoning and evidence for each score
+        1. КРИТИЧЕСКИ ВАЖНО: Проведи РЕАЛЬНЫЙ анализ рынка:
+           - Проверь существующих конкурентов
+           - Оцени реальный размер рынка с цифрами
+           - Найди КОНКРЕТНЫЕ доказательства спроса
+           - Проанализируй успешные аналоги
 
-        4. Generate a detailed implementation roadmap with 4-6 phases (each phase should include phase number, title, duration in weeks, 3-5 tasks, resources needed, budget, and dependencies on previous phases)
+        2. Оцени 6 метрик (0-100) с ПОДРОБНЫМ обоснованием:
+           - market_size: Общий объем рынка (TAM) в $ и количество потенциальных клиентов
+           - competition: Уровень конкуренции (меньше = лучше) с примерами конкурентов
+           - demand: Острота проблемы и реальный спрос (с доказательствами)
+           - monetization: Потенциал дохода с конкретными моделями монетизации
+           - feasibility: Техническая сложность реализации
+           - time_to_market: Скорость запуска MVP (выше = быстрее)
 
-        5. Create a budget breakdown with categories: Development, Infrastructure, Marketing, Operations, Contingency (15-20%)
+        3. Рассчитай РЕАЛИСТИЧНЫЕ финансовые показатели:
+           - investment: Начальные инвестиции в $ (учти разработку, маркетинг, инфраструктуру)
+           - payback_months: Срок окупаемости в месяцах (реалистично!)
+           - margin: Маржинальность бизнеса в % (0-100)
+           - arr: Годовой доход (ARR) через 12 месяцев в $
+
+        4. Определи правильную категорию из: ai, saas, ecommerce, fintech, health, education, entertainment
+
+        5. Подбери ОДИН подходящий эмодзи для визуализации идеи
+
+        6. Создай детальный план реализации (4-6 фаз)
+
+        **КРИТИЧЕСКИ ВАЖНО:**
+        - Все оценки должны быть РЕАЛИСТИЧНЫМИ, не завышенными
+        - Обоснования должны содержать КОНКРЕТНЫЕ данные и примеры
+        - Финансовые показатели должны быть выверенными и достижимыми
+        - Если нет уверенности в метрике - ставь средние значения, НЕ высокие
 
         **Output Format (JSON):**
         {{
-            "title": "Business idea title (max 100 chars)",
-            "description": "Detailed description (max 500 chars)",
+            "title": "Название идеи (макс 100 символов)",
+            "description": "Детальное описание (макс 500 символов)",
+            "emoji": "💡",
+            "category": "ai",
             "scores": {{
                 "market_size": {{
                     "score": 85,
@@ -198,6 +218,12 @@ class IdeaAnalystAgent(BaseAgent):
                     "reasoning": "Development timeline",
                     "evidence": "MVP scope"
                 }}
+            }},
+            "financial": {{
+                "investment": 50000,
+                "payback_months": 12,
+                "margin": 30,
+                "arr": 100000
             }},
             "roadmap": {{
                 "phases": [
@@ -271,10 +297,20 @@ class IdeaAnalystAgent(BaseAgent):
             "budget": analysis.get("budget", {})
         }
 
+        # Extract financial data
+        financial = analysis.get("financial", {})
+
+        # Determine if trending based on engagement
+        is_trending = trend.engagement_score > 500 if hasattr(trend, 'engagement_score') else False
+
         # Create IdeaCreate schema
         idea_create = IdeaCreate(
             title=analysis["title"],
             description=analysis["description"],
+            emoji=analysis.get("emoji", "💡"),
+            source=trend.source if hasattr(trend, 'source') else "AI Analysis",
+            category=analysis.get("category", "ai"),
+            is_trending=is_trending,
             trend_id=trend.id,
             market_size_score=scores["market_size"]["score"],
             competition_score=scores["competition"]["score"],
@@ -282,6 +318,10 @@ class IdeaAnalystAgent(BaseAgent):
             monetization_score=scores["monetization"]["score"],
             feasibility_score=scores["feasibility"]["score"],
             time_to_market_score=scores["time_to_market"]["score"],
+            investment=financial.get("investment", 50000),
+            payback_months=financial.get("payback_months", 12),
+            margin=financial.get("margin", 30),
+            arr=financial.get("arr", 100000),
             analysis=analysis_data,
             status="pending"
         )

@@ -32,28 +32,37 @@ class IdeaService:
         limit: int = 100,
         min_score: Optional[int] = None,
         status: Optional[str] = None,
-        trend_id: Optional[int] = None
+        trend_id: Optional[int] = None,
+        category: Optional[str] = None,
+        is_trending: Optional[bool] = None,
+        sort_by: str = "date"
     ) -> IdeaList:
         """
-        Get paginated list of ideas with filters
+        Get paginated list of ideas with filters and sorting
         """
         ideas, total = self.repository.get_many(
             skip=skip,
             limit=limit,
             min_score=min_score,
             status=status,
-            trend_id=trend_id
+            trend_id=trend_id,
+            category=category,
+            is_trending=is_trending,
+            sort_by=sort_by
         )
 
         has_more = (skip + limit) < total
 
-        return IdeaList(
-            items=[IdeaOut.model_validate(i) for i in ideas],
-            total=total,
-            skip=skip,
-            limit=limit,
-            has_more=has_more
-        )
+        # Convert to frontend format using to_dict()
+        items = [idea.to_dict() for idea in ideas]
+
+        return {
+            "items": items,
+            "total": total,
+            "skip": skip,
+            "limit": limit,
+            "has_more": has_more
+        }
 
     def get_idea(self, idea_id: int, detailed: bool = False) -> Optional[Union[IdeaOut, IdeaDetailedOut]]:
         """Get single idea by ID"""

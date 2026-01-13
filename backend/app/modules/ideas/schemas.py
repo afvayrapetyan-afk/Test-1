@@ -39,7 +39,21 @@ class IdeaBase(BaseModel):
     """Base schema for Idea"""
     title: str = Field(..., min_length=5, max_length=500)
     description: Optional[str] = Field(None, max_length=5000)
+    emoji: Optional[str] = Field(default="💡", max_length=10)
+    source: Optional[str] = Field(default="AI Analysis", max_length=200)
+    category: Optional[str] = Field(None, max_length=50)
+    is_trending: Optional[bool] = Field(default=False)
     trend_id: Optional[int] = None
+
+    @field_validator('category')
+    @classmethod
+    def validate_category(cls, v):
+        if v is None:
+            return v
+        allowed = ['ai', 'saas', 'ecommerce', 'fintech', 'health', 'education', 'entertainment']
+        if v not in allowed:
+            raise ValueError(f'Category must be one of {allowed}')
+        return v
 
 
 class IdeaCreate(IdeaBase):
@@ -50,6 +64,13 @@ class IdeaCreate(IdeaBase):
     monetization_score: int = Field(..., ge=0, le=100)
     feasibility_score: int = Field(..., ge=0, le=100)
     time_to_market_score: int = Field(..., ge=0, le=100)
+
+    # Financial projections
+    investment: Optional[int] = Field(default=50000, ge=1000)  # Min $1K
+    payback_months: Optional[int] = Field(default=12, ge=1, le=120)  # 1-120 months
+    margin: Optional[int] = Field(default=30, ge=0, le=100)  # 0-100%
+    arr: Optional[int] = Field(default=100000, ge=0)  # Min $0
+
     analysis: Dict[str, Any] = Field(default_factory=dict)
     status: str = Field(default="pending")
 

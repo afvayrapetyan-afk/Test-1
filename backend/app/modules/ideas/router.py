@@ -29,6 +29,9 @@ async def get_ideas(
     min_score: Optional[int] = Query(None, ge=0, le=100),
     status: Optional[str] = None,
     trend_id: Optional[int] = None,
+    category: Optional[str] = Query(None, description="Filter by category: ai, saas, ecommerce, fintech, health, education, entertainment"),
+    is_trending: Optional[bool] = Query(None, description="Filter trending ideas only"),
+    sort_by: str = Query("date", regex="^(date|score)$", description="Sort by: date or score"),
     db: Session = Depends(get_db)
 ):
     """
@@ -40,6 +43,9 @@ async def get_ideas(
     - min_score: Minimum total score filter
     - status: Filter by status (pending, approved, rejected, etc.)
     - trend_id: Filter by specific trend
+    - category: Filter by category (ai, saas, ecommerce, fintech, health, education, entertainment)
+    - is_trending: Show only trending ideas
+    - sort_by: Sort by date (default) or score
     """
     service = IdeaService(db)
     return service.get_ideas(
@@ -47,7 +53,10 @@ async def get_ideas(
         limit=limit,
         min_score=min_score,
         status=status,
-        trend_id=trend_id
+        trend_id=trend_id,
+        category=category,
+        is_trending=is_trending,
+        sort_by=sort_by
     )
 
 

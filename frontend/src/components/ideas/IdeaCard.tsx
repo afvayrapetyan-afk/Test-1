@@ -66,138 +66,140 @@ export default function IdeaCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -100, scale: 0.9 }}
-      whileHover={{ y: -4 }}
-      className={`relative bg-surface border border-border ${rating.borderColor} border-l-4 rounded-lg p-4 transition-smooth hover:shadow-lg cursor-pointer`}
+      whileHover={{ y: -2 }}
+      className={`relative bg-surface border border-border ${rating.borderColor} border-l-4 rounded-lg p-3 sm:p-4 transition-smooth hover:shadow-lg cursor-pointer`}
       onClick={onDetailsClick}
     >
-      {/* Like/Dislike buttons - top right */}
+      {/* Action buttons */}
       {showActions && (
-        <div className="absolute top-2 right-2 flex gap-1 z-10">
+        <>
+          {/* Close button - top left, small red */}
           <button
             onClick={(e) => {
               e.stopPropagation()
               onDislike?.(idea.id)
             }}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-background border border-border text-text-tertiary hover:text-red-500 hover:border-red-500 transition-colors"
+            className="absolute top-1 left-1 w-5 h-5 flex items-center justify-center rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors z-10"
             title="Скрыть"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3 h-3" />
           </button>
+
+          {/* Like button - top right */}
           <button
             onClick={(e) => {
               e.stopPropagation()
               onLike?.(idea.id)
             }}
-            className={`w-8 h-8 flex items-center justify-center rounded-full border transition-colors ${
+            className={`absolute top-1 right-1 w-6 h-6 flex items-center justify-center rounded-full border transition-colors z-10 ${
               isLiked
                 ? 'bg-red-500 border-red-500 text-white'
                 : 'bg-background border-border text-text-tertiary hover:text-red-500 hover:border-red-500'
             }`}
             title={isLiked ? 'Убрать из избранного' : 'В избранное'}
           >
-            <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
+            <Heart className={`w-3 h-3 ${isLiked ? 'fill-current' : ''}`} />
           </button>
-        </div>
+        </>
       )}
 
-      {/* Заголовок с эмодзи и рейтингом */}
-      <div className="flex items-start justify-between gap-3 mb-3 pr-20">
-        <div className="flex-1 min-w-0">
-          <h3 className="text-base font-bold text-text-primary leading-tight mb-1">
-            <span className="mr-1.5">{idea.emoji}</span>
-            {idea.title}
-          </h3>
-          <div className="flex items-center gap-2 text-xs text-text-tertiary flex-wrap">
-            <span>{idea.source}</span>
-            <span>•</span>
-            <span>{idea.timeAgo}</span>
-            {idea.category && (
-              <>
-                <span>•</span>
-                <span className="bg-background px-1.5 py-0.5 rounded text-text-secondary">
-                  {categoryLabels[idea.category]}
-                </span>
-              </>
-            )}
-          </div>
-        </div>
+      {/* Header: Title + Category */}
+      <div className="mt-5 mb-2">
+        <h3 className="text-sm sm:text-base font-bold text-text-primary leading-snug line-clamp-2">
+          <span className="mr-1">{idea.emoji}</span>
+          {idea.title}
+        </h3>
       </div>
 
-      {/* Score + Rating badge */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-baseline gap-2">
-          <span className="text-3xl font-extrabold text-text-primary">
+      {/* Meta info */}
+      <div className="flex items-center gap-1 text-xs text-text-tertiary mb-3 flex-wrap">
+        <span className="truncate max-w-[100px]">{idea.source}</span>
+        <span>•</span>
+        <span className="whitespace-nowrap">{idea.timeAgo}</span>
+        {idea.category && (
+          <>
+            <span>•</span>
+            <span className="bg-background px-1.5 py-0.5 rounded text-text-secondary truncate max-w-[80px] sm:max-w-none">
+              {categoryLabels[idea.category]}
+            </span>
+          </>
+        )}
+      </div>
+
+      {/* Score + Rating */}
+      <div className="flex items-center justify-between mb-3 gap-2">
+        <div className="flex items-baseline gap-1">
+          <span className="text-2xl sm:text-3xl font-extrabold text-text-primary">
             {idea.score.toFixed(1)}
           </span>
-          <span className="text-sm text-text-tertiary">из 10</span>
+          <span className="text-xs text-text-tertiary">/10</span>
         </div>
-        <div className={`${rating.bgColor} ${rating.textColor} px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1`}>
+        <div className={`${rating.bgColor} ${rating.textColor} px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1`}>
           <span>{rating.emoji}</span>
-          <span>{rating.label}</span>
+          <span className="hidden xs:inline">{rating.label}</span>
         </div>
       </div>
 
-      {/* Метрики в виде сетки */}
-      <div className="grid grid-cols-2 gap-2 mb-4">
-        <div className="bg-background rounded-md p-2">
-          <div className="flex items-center gap-1.5 text-text-secondary mb-1">
-            <TrendingUp className="w-3.5 h-3.5" />
+      {/* Metrics Grid */}
+      <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mb-3">
+        <div className="bg-background rounded p-1.5 sm:p-2">
+          <div className="flex items-center gap-1 text-text-secondary mb-0.5">
+            <TrendingUp className="w-3 h-3" />
             <span className="text-xs">Рынок</span>
           </div>
-          <div className="text-sm font-bold text-text-primary">
+          <div className="text-xs sm:text-sm font-bold text-text-primary">
             {idea.metrics.marketSize}/10
           </div>
         </div>
 
-        <div className="bg-background rounded-md p-2">
-          <div className="flex items-center gap-1.5 text-text-secondary mb-1">
-            <Users className="w-3.5 h-3.5" />
+        <div className="bg-background rounded p-1.5 sm:p-2">
+          <div className="flex items-center gap-1 text-text-secondary mb-0.5">
+            <Users className="w-3 h-3" />
             <span className="text-xs">Спрос</span>
           </div>
-          <div className="text-sm font-bold text-text-primary">
+          <div className="text-xs sm:text-sm font-bold text-text-primary">
             {idea.metrics.demand}/10
           </div>
         </div>
       </div>
 
-      {/* Финансы */}
-      <div className="bg-background rounded-md p-2.5 mb-4">
-        <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center gap-1.5">
-            <DollarSign className="w-3.5 h-3.5 text-accent-green" />
-            <span className="text-text-secondary">Инвестиции:</span>
+      {/* Financial info - compact */}
+      <div className="bg-background rounded p-1.5 sm:p-2 mb-3">
+        <div className="flex items-center justify-between text-xs gap-2">
+          <div className="flex items-center gap-1 min-w-0">
+            <DollarSign className="w-3 h-3 text-accent-green flex-shrink-0" />
+            <span className="text-text-secondary hidden sm:inline">Старт:</span>
             <span className="font-bold text-text-primary">${(idea.financial.investment / 1000).toFixed(0)}K</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 text-accent-blue" />
-            <span className="text-text-secondary">Окупаемость:</span>
-            <span className="font-bold text-text-primary">{idea.financial.paybackMonths} мес</span>
+          <div className="flex items-center gap-1 min-w-0">
+            <Clock className="w-3 h-3 text-accent-blue flex-shrink-0" />
+            <span className="text-text-secondary hidden sm:inline">Окуп.:</span>
+            <span className="font-bold text-text-primary">{idea.financial.paybackMonths}м</span>
           </div>
         </div>
       </div>
 
-      {/* Кнопки действий */}
-      <div className="flex gap-2">
+      {/* Action buttons */}
+      <div className="flex gap-1.5 sm:gap-2">
         <button
           onClick={(e) => {
             e.stopPropagation()
             onChatClick?.()
           }}
-          className="flex-1 bg-accent-purple hover:bg-accent-purple/90 text-white px-3 py-2 rounded-md text-sm font-medium flex items-center justify-center gap-1.5 transition-smooth"
+          className="flex-1 bg-accent-purple hover:bg-accent-purple/90 text-white px-2 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium flex items-center justify-center gap-1 transition-smooth"
         >
-          <MessageCircle className="w-4 h-4" />
-          <span className="hidden sm:inline">Спросить AI</span>
-          <span className="sm:hidden">AI</span>
+          <MessageCircle className="w-3.5 h-3.5" />
+          <span>AI</span>
         </button>
         <button
           onClick={(e) => {
             e.stopPropagation()
             onDetailsClick?.()
           }}
-          className="flex-1 bg-background hover:bg-border text-text-primary px-3 py-2 rounded-md text-sm font-medium border border-border flex items-center justify-center gap-1.5 transition-smooth"
+          className="flex-1 bg-background hover:bg-border text-text-primary px-2 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium border border-border flex items-center justify-center gap-1 transition-smooth"
         >
-          <FileText className="w-4 h-4" />
-          <span>Подробнее</span>
+          <FileText className="w-3.5 h-3.5" />
+          <span>Детали</span>
         </button>
       </div>
     </motion.div>

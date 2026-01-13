@@ -132,3 +132,4 @@ pre-commit==3.6.0
 types-redis==4.6.0.20240106
 types-pytz==2024.1.0.20240203
 sqlalchemy[mypy]==2.0.27
+timeago==1.0.16  # Human-readable time ago

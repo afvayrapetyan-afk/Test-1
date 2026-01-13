@@ -30,10 +30,13 @@ class IdeaRepository:
         limit: int = 100,
         min_score: Optional[int] = None,
         status: Optional[str] = None,
-        trend_id: Optional[int] = None
+        trend_id: Optional[int] = None,
+        category: Optional[str] = None,
+        is_trending: Optional[bool] = None,
+        sort_by: str = "date"
     ) -> Tuple[List[Idea], int]:
         """
-        Get paginated list of ideas with filters
+        Get paginated list of ideas with filters and sorting
 
         Returns (ideas, total_count)
         """
@@ -46,18 +49,29 @@ class IdeaRepository:
         if trend_id:
             query = query.filter(Idea.trend_id == trend_id)
 
+        if category:
+            query = query.filter(Idea.category == category)
+
+        if is_trending is not None:
+            query = query.filter(Idea.is_trending == (1 if is_trending else 0))
+
         # Get total count before pagination
         total = query.count()
 
-        # Apply min_score filter (must be done after count for performance)
-        # Since total_score is computed property, we filter in Python
-        # For better performance, could use raw SQL or database computed column
-        ideas = query.order_by(desc(Idea.analyzed_at)).offset(skip).limit(limit).all()
+        # Apply sorting
+        if sort_by == "score":
+            # Sort by average score - using market_size_score as proxy
+            # For exact sorting by total_score, would need computed column
+            query = query.order_by(desc(Idea.market_size_score))
+        else:  # date
+            query = query.order_by(desc(Idea.analyzed_at))
 
+        # Pagination
+        ideas = query.offset(skip).limit(limit).all()
+
+        # Apply min_score filter after fetch (since total_score is computed property)
         if min_score is not None:
             ideas = [idea for idea in ideas if idea.total_score >= min_score]
-            # Adjust total count (this is approximate)
-            # For exact count, would need to iterate all records (expensive)
 
         return ideas, total
 
@@ -66,6 +80,10 @@ class IdeaRepository:
         idea = Idea(
             title=idea_data.title,
             description=idea_data.description,
+            emoji=idea_data.emoji,
+            source=idea_data.source,
+            category=idea_data.category,
+            is_trending=1 if idea_data.is_trending else 0,
             trend_id=idea_data.trend_id,
             market_size_score=idea_data.market_size_score,
             competition_score=idea_data.competition_score,
@@ -73,6 +91,10 @@ class IdeaRepository:
             monetization_score=idea_data.monetization_score,
             feasibility_score=idea_data.feasibility_score,
             time_to_market_score=idea_data.time_to_market_score,
+            investment=idea_data.investment,
+            payback_months=idea_data.payback_months,
+            margin=idea_data.margin,
+            arr=idea_data.arr,
             analysis=idea_data.analysis,
             status=idea_data.status
         )

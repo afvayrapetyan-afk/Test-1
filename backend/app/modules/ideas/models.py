@@ -24,6 +24,17 @@ class Idea(Base):
     # Content
     title = Column(String(500), nullable=False)
     description = Column(Text, nullable=True)
+    emoji = Column(String(10), nullable=True, default="💡")  # Emoji for card
+    source = Column(String(200), nullable=True, default="AI Analysis")  # Trend source
+
+    # Category
+    category = Column(
+        String(50),
+        nullable=True,
+        index=True
+    )  # ai, saas, ecommerce, fintech, health, education, entertainment
+
+    is_trending = Column(Integer, default=0)  # Boolean flag for trending ideas
 
     # Scores (0-100 for each metric)
     market_size_score = Column(
@@ -72,6 +83,12 @@ class Idea(Base):
         ]
         return sum(scores) // 6 if any(scores) else 0
 
+    # Financial projections
+    investment = Column(Integer, nullable=True)  # Initial investment in USD
+    payback_months = Column(Integer, nullable=True)  # Payback period in months
+    margin = Column(Integer, nullable=True)  # Profit margin in percentage (0-100)
+    arr = Column(Integer, nullable=True)  # Annual Recurring Revenue in USD
+
     # Analysis details
     analysis = Column(JSON, default=dict)  # Full LLM analysis with reasoning
 
@@ -94,21 +111,41 @@ class Idea(Base):
 
     def to_dict(self):
         """Convert to dictionary for API responses"""
+        from datetime import datetime
+        import timeago
+
+        # Calculate timeAgo
+        time_ago = ""
+        if self.analyzed_at:
+            try:
+                time_ago = timeago.format(self.analyzed_at, datetime.utcnow(), 'ru')
+            except:
+                time_ago = "недавно"
+
         return {
-            "id": self.id,
+            "id": str(self.id),  # Frontend expects string
             "trend_id": self.trend_id,
             "title": self.title,
             "description": self.description,
-            "scores": {
-                "market_size": self.market_size_score,
-                "competition": self.competition_score,
-                "demand": self.demand_score,
-                "monetization": self.monetization_score,
-                "feasibility": self.feasibility_score,
-                "time_to_market": self.time_to_market_score,
+            "emoji": self.emoji or "💡",
+            "source": self.source or "AI Analysis",
+            "category": self.category or "ai",
+            "isTrending": bool(self.is_trending),
+            "score": round(self.total_score / 10, 1),  # Convert 0-100 to 0-10 scale
+            "timeAgo": time_ago,
+            "createdAt": self.analyzed_at.isoformat() if self.analyzed_at else None,
+            "metrics": {
+                "marketSize": self.market_size_score or 0,
+                "competition": self.competition_score or 0,
+                "demand": self.demand_score or 0,
+                "monetization": self.monetization_score or 0,
             },
-            "total_score": self.total_score,
-            "analysis": self.analysis or {},
+            "financial": {
+                "investment": self.investment or 50000,  # Default $50K
+                "paybackMonths": self.payback_months or 12,  # Default 12 months
+                "margin": self.margin or 30,  # Default 30% margin
+                "arr": self.arr or 100000,  # Default $100K ARR
+            },
             "status": self.status,
             "analyzed_at": self.analyzed_at.isoformat() if self.analyzed_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None
