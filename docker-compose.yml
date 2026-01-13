@@ -1,0 +1,243 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: business-portfolio-db
+    environment:
+      POSTGRES_DB: business_portfolio
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d business_portfolio"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - business-network
+
+  # Redis (Cache + Message Broker)
+  redis:
+    image: redis:7-alpine
+    container_name: business-portfolio-redis
+    command: redis-server --appendonly yes --requirepass redis123
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - business-network
+
+  # Qdrant Vector Database
+  qdrant:
+    image: qdrant/qdrant:v1.7.4
+    container_name: business-portfolio-qdrant
+    ports:
+      - "6333:6333"  # REST API
+      - "6334:6334"  # gRPC API
+    volumes:
+      - qdrant_data:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__GRPC_PORT: 6334
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - business-network
+
+  # Backend API (FastAPI)
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: business-portfolio-api
+    ports:
+      - "8000:8000"
+    environment:
+      # Database
+      DATABASE_URL: postgresql://admin:admin123@postgres:5432/business_portfolio
+
+      # Redis
+      REDIS_URL: redis://:redis123@redis:6379/0
+
+      # Qdrant
+      QDRANT_URL: http://qdrant:6333
+
+      # OpenAI
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+
+      # Environment
+      ENVIRONMENT: development
+      DEBUG: "true"
+
+      # CORS
+      CORS_ORIGINS: http://localhost:5173,http://localhost:3000
+    volumes:
+      - ./backend:/app
+      - /app/__pycache__
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    networks:
+      - business-network
+    restart: unless-stopped
+
+  # Celery Worker (Scraping Queue)
+  celery-scraping:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: business-portfolio-celery-scraping
+    environment:
+      DATABASE_URL: postgresql://admin:admin123@postgres:5432/business_portfolio
+      REDIS_URL: redis://:redis123@redis:6379/0
+      QDRANT_URL: http://qdrant:6333
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    volumes:
+      - ./backend:/app
+    command: celery -A app.core.celery_config worker -Q scraping --pool=gevent --concurrency=1000 --loglevel=info --hostname=scraping@%h
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - business-network
+    restart: unless-stopped
+
+  # Celery Worker (Agents Queue)
+  celery-agents:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: business-portfolio-celery-agents
+    environment:
+      DATABASE_URL: postgresql://admin:admin123@postgres:5432/business_portfolio
+      REDIS_URL: redis://:redis123@redis:6379/0
+      QDRANT_URL: http://qdrant:6333
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    volumes:
+      - ./backend:/app
+    command: celery -A app.core.celery_config worker -Q agents --pool=prefork --concurrency=4 --loglevel=info --hostname=agents@%h
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - business-network
+    restart: unless-stopped
+
+  # Celery Beat (Scheduler)
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: business-portfolio-celery-beat
+    environment:
+      DATABASE_URL: postgresql://admin:admin123@postgres:5432/business_portfolio
+      REDIS_URL: redis://:redis123@redis:6379/0
+      QDRANT_URL: http://qdrant:6333
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    volumes:
+      - ./backend:/app
+    command: celery -A app.core.celery_config beat --loglevel=info
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - business-network
+    restart: unless-stopped
+
+  # Flower (Celery Monitoring)
+  flower:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: business-portfolio-flower
+    ports:
+      - "5555:5555"
+    environment:
+      CELERY_BROKER_URL: redis://:redis123@redis:6379/0
+      FLOWER_PORT: 5555
+      FLOWER_BASIC_AUTH: admin:flower123
+    command: celery -A app.core.celery_config flower --port=5555 --basic_auth=admin:flower123
+    depends_on:
+      - redis
+    networks:
+      - business-network
+    restart: unless-stopped
+
+  # Frontend (React + Vite)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: business-portfolio-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:8000
+      VITE_WS_URL: ws://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev -- --host 0.0.0.0
+    depends_on:
+      - api
+    networks:
+      - business-network
+    restart: unless-stopped
+
+  # Kafka (Optional - for streaming)
+  # Uncomment if you want to use Kafka for real-time streaming
+  # kafka:
+  #   image: confluentinc/cp-kafka:7.5.0
+  #   container_name: business-portfolio-kafka
+  #   ports:
+  #     - "9092:9092"
+  #   environment:
+  #     KAFKA_BROKER_ID: 1
+  #     KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+  #     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+  #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  #   depends_on:
+  #     - zookeeper
+  #   networks:
+  #     - business-network
+
+  # zookeeper:
+  #   image: confluentinc/cp-zookeeper:7.5.0
+  #   container_name: business-portfolio-zookeeper
+  #   environment:
+  #     ZOOKEEPER_CLIENT_PORT: 2181
+  #     ZOOKEEPER_TICK_TIME: 2000
+  #   networks:
+  #     - business-network
+
+networks:
+  business-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  qdrant_data:
+    driver: local

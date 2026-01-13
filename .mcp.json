@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "n8n-mcp": {
+      "type": "stdio",
+      "command": "/Users/vardanajrapetan/.local/lib/nodejs/bin/node",
+      "args": ["/Users/vardanajrapetan/Projects/n8n-mcp/dist/mcp/index.js"],
+      "env": {
+        "MCP_MODE": "stdio",
+        "LOG_LEVEL": "error",
+        "DISABLE_CONSOLE_OUTPUT": "true",
+        "N8N_API_URL": "https://raysan.app.n8n.cloud",
+        "N8N_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjM2QxYjg5YS05NDEyLTRjY2EtOGI4Yi0xYTczMWFlY2U1ZDUiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzY4MzE4OTU5fQ.biClR5p0BF8mjS5V8o-M1hmLgCK8-zaKISjrKyyJXi4"
+      },
+      "permissions": {
+        "allow": [
+          "mcp__n8n-mcp__search*",
+          "mcp__n8n-mcp__get*",
+          "mcp__n8n-mcp__list*",
+          "mcp__n8n-mcp__validate*"
+        ],
+        "ask": [
+          "mcp__n8n-mcp__create*",
+          "mcp__n8n-mcp__update*",
+          "mcp__n8n-mcp__execute*"
+        ],
+        "deny": [
+          "mcp__n8n-mcp__delete*"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Personal Chef App - Детальный анализ</title>
+    <style>
+        /* Same design system as main prototype */
+        :root {
+            --background: #FAFAFA;
+            --surface: #FFFFFF;
+            --border: #E5E5E5;
+            --text-primary: #171717;
+            --text-secondary: #737373;
+            --text-tertiary: #A3A3A3;
+            --accent-blue: #3B82F6;
+            --accent-green: #10B981;
+            --accent-purple: #8B5CF6;
+            --accent-orange: #F59E0B;
+            --accent-red: #EF4444;
+            --space-1: 8px;
+            --space-2: 16px;
+            --space-3: 24px;
+            --space-4: 32px;
+            --space-6: 48px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.05);
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 var(--space-3);
+        }
+
+        /* Header */
+        .header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: var(--space-2) 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-1);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .back-button:hover {
+            color: var(--accent-blue);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: var(--space-6) 0;
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: var(--space-6);
+        }
+
+        .hero-title {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: var(--space-2);
+        }
+
+        .hero-meta {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-3);
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: var(--space-4);
+            margin-top: var(--space-3);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent-green);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .score-big {
+            background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+            color: white;
+            padding: var(--space-4);
+            border-radius: var(--radius-lg);
+            text-align: center;
+        }
+
+        .score-big-value {
+            font-size: 64px;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .score-big-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: var(--space-1);
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: var(--space-4);
+            padding: var(--space-6) 0;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: sticky;
+            top: 80px;
+            height: fit-content;
+        }
+
+        .sidebar-nav {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-2);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+            padding: var(--space-2);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: var(--background);
+            color: var(--accent-blue);
+        }
+
+        /* Content */
+        .content {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+        }
+
+        .content h2 {
+            font-size: 28px;
+            font-weight: 700;
+            margin: var(--space-6) 0 var(--space-3) 0;
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+        }
+
+        .content h2:first-child {
+            margin-top: 0;
+        }
+
+        .content h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: var(--space-4) 0 var(--space-2) 0;
+        }
+
+        .content p {
+            margin-bottom: var(--space-2);
+            color: var(--text-secondary);
+        }
+
+        .content ul, .content ol {
+            margin-left: var(--space-3);
+            margin-bottom: var(--space-2);
+            color: var(--text-secondary);
+        }
+
+        .content li {
+            margin-bottom: var(--space-1);
+        }
+
+        /* Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-3);
+            margin: var(--space-3) 0;
+        }
+
+        .info-card {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: var(--space-3);
+        }
+
+        .info-card-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: var(--space-1);
+        }
+
+        .info-card-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* Competitor Table */
+        .competitor-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: var(--space-3) 0;
+        }
+
+        .competitor-table th {
+            text-align: left;
+            padding: var(--space-2);
+            background: var(--background);
+            border-bottom: 2px solid var(--border);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .competitor-table td {
+            padding: var(--space-2);
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .competitor-table tr:hover {
+            background: var(--background);
+        }
+
+        /* Roadmap */
+        .roadmap-item {
+            border-left: 3px solid var(--accent-blue);
+            padding-left: var(--space-3);
+            margin-bottom: var(--space-4);
+            position: relative;
+        }
+
+        .roadmap-item::before {
+            content: '';
+            position: absolute;
+            left: -9px;
+            top: 0;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            border: 3px solid var(--surface);
+        }
+
+        .roadmap-phase {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--accent-blue);
+            font-weight: 700;
+            margin-bottom: var(--space-1);
+        }
+
+        .roadmap-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: var(--space-1);
+        }
+
+        .roadmap-description {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* AI Chat Button */
+        .ai-chat-button {
+            position: fixed;
+            bottom: var(--space-4);
+            right: var(--space-4);
+            background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+            color: white;
+            border: none;
+            padding: var(--space-2) var(--space-3);
+            border-radius: 99px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+        }
+
+        .ai-chat-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(139, 92, 246, 0.5);
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: var(--space-3);
+            margin: var(--space-3) 0;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: var(--space-1);
+            margin-bottom: var(--space-1);
+        }
+
+        .tag-blue { background: #DBEAFE; color: #1E40AF; }
+        .tag-green { background: #D1FAE5; color: #065F46; }
+        .tag-purple { background: #EDE9FE; color: #5B21B6; }
+        .tag-orange { background: #FED7AA; color: #92400E; }
+
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+            }
+
+            .hero-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="container">
+            <a href="prototype.html" class="back-button">
+                ← Назад к списку идей
+            </a>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div>
+                    <h1 class="hero-title">🍽️ AI Personal Chef App</h1>
+                    <div class="hero-meta">
+                        Обнаружено: Reddit r/FoodTech • 2 часа назад • Категория: FoodTech, AI
+                    </div>
+
+                    <div>
+                        <span class="tag tag-blue">AI & ML</span>
+                        <span class="tag tag-green">FoodTech</span>
+                        <span class="tag tag-purple">SaaS</span>
+                        <span class="tag tag-orange">B2C</span>
+                    </div>
+
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">$45K</div>
+                            <div class="stat-label">Инвестиции</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">8 мес</div>
+                            <div class="stat-label">Окупаемость</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">65%</div>
+                            <div class="stat-label">Маржа</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">$180K</div>
+                            <div class="stat-label">ARR год 1</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="score-big">
+                    <div class="score-big-value">8.4</div>
+                    <div class="score-big-label">Общий рейтинг из 10</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="main-layout">
+            <!-- Sidebar Navigation -->
+            <aside class="sidebar">
+                <nav class="sidebar-nav">
+                    <a href="#summary" class="nav-item active">
+                        <span>📊</span>
+                        <span>Обзор</span>
+                    </a>
+                    <a href="#market" class="nav-item">
+                        <span>🌍</span>
+                        <span>Рынок</span>
+                    </a>
+                    <a href="#competitors" class="nav-item">
+                        <span>🏪</span>
+                        <span>Конкуренты</span>
+                    </a>
+                    <a href="#strategy" class="nav-item">
+                        <span>🎯</span>
+                        <span>Стратегия</span>
+                    </a>
+                    <a href="#financials" class="nav-item">
+                        <span>💰</span>
+                        <span>Финансы</span>
+                    </a>
+                    <a href="#roadmap" class="nav-item">
+                        <span>🗺️</span>
+                        <span>Roadmap</span>
+                    </a>
+                    <a href="#risks" class="nav-item">
+                        <span>⚠️</span>
+                        <span>Риски</span>
+                    </a>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="content">
+                <section id="summary">
+                    <h2>📊 Executive Summary</h2>
+                    <p>
+                        AI Personal Chef App — это мобильное приложение, которое использует искусственный интеллект для создания персонализированных планов питания, генерации рецептов и автоматического формирования списков покупок на основе предпочтений пользователя, диетических ограничений и имеющихся продуктов.
+                    </p>
+
+                    <div class="highlight-box">
+                        <strong>💡 Ключевая ценность:</strong> Экономия времени на планировании питания (в среднем 5 часов в неделю) + снижение пищевых отходов на 30% + персонализированное питание без найма реального повара.
+                    </div>
+
+                    <h3>Целевая аудитория</h3>
+                    <ul>
+                        <li><strong>Занятые профессионалы (25-45 лет)</strong> — хотят здоровое питание, но нет времени планировать</li>
+                        <li><strong>Молодые семьи с детьми</strong> — нужно разнообразие и учет предпочтений каждого</li>
+                        <li><strong>Люди с диетическими ограничениями</strong> — диабет, целиакия, аллергии</li>
+                        <li><strong>Fitness энтузиасты</strong> — точный подсчет макронутриентов</li>
+                    </ul>
+                </section>
+
+                <section id="market">
+                    <h2>🌍 Анализ рынка</h2>
+
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <div class="info-card-title">TAM (Total Addressable Market)</div>
+                            <div class="info-card-value">$50B</div>
+                            <p style="margin-top: 8px; font-size: 13px;">Глобальный рынок meal planning приложений</p>
+                        </div>
+
+                        <div class="info-card">
+                            <div class="info-card-title">SAM (Serviceable Available Market)</div>
+                            <div class="info-card-value">$5B</div>
+                            <p style="margin-top: 8px; font-size: 13px;">США + Европа, сегмент premium</p>
+                        </div>
+
+                        <div class="info-card">
+                            <div class="info-card-title">SOM (Serviceable Obtainable Market)</div>
+                            <div class="info-card-value">$50M</div>
+                            <p style="margin-top: 8px; font-size: 13px;">Реалистичная доля через 3 года (1%)</p>
+                        </div>
+
+                        <div class="info-card">
+                            <div class="info-card-title">Темп роста рынка</div>
+                            <div class="info-card-value" style="color: var(--accent-green);">+23% CAGR</div>
+                            <p style="margin-top: 8px; font-size: 13px;">Прогноз 2024-2029</p>
+                        </div>
+                    </div>
+
+                    <h3>Рыночные тренды</h3>
+                    <ul>
+                        <li>📈 <strong>Рост спроса на AI-персонализацию</strong> в health-tech секторе</li>
+                        <li>🏋️ <strong>Wellness тренд</strong> — люди больше заботятся о здоровье после пандемии</li>
+                        <li>🌱 <strong>Sustainability</strong> — снижение food waste стало важным для потребителей</li>
+                        <li>📱 <strong>Mobile-first подход</strong> — 85% пользователей предпочитают мобильные приложения</li>
+                    </ul>
+                </section>
+
+                <section id="competitors">
+                    <h2>🏪 Анализ конкурентов</h2>
+
+                    <table class="competitor-table">
+                        <thead>
+                            <tr>
+                                <th>Конкурент</th>
+                                <th>Пользователи</th>
+                                <th>Цена</th>
+                                <th>Ключевая фича</th>
+                                <th>Слабое место</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Mealime</strong></td>
+                                <td>5M+</td>
+                                <td>$6/месяц</td>
+                                <td>Простой интерфейс</td>
+                                <td>Нет AI-персонализации</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Eat This Much</strong></td>
+                                <td>1M+</td>
+                                <td>$9/месяц</td>
+                                <td>Автоматические планы</td>
+                                <td>Устаревший дизайн</td>
+                            </tr>
+                            <tr>
+                                <td><strong>PlateJoy</strong></td>
+                                <td>500K+</td>
+                                <td>$13/месяц</td>
+                                <td>Персонализация</td>
+                                <td>Дорого, сложная настройка</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Paprika</strong></td>
+                                <td>2M+</td>
+                                <td>$5 (one-time)</td>
+                                <td>Recipe organizer</td>
+                                <td>Нет AI, ручная работа</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="highlight-box">
+                        <strong>🎯 Наше конкурентное преимущество:</strong>
+                        <ul style="margin-top: 8px;">
+                            <li>✅ Продвинутый AI (GPT-4) для реальной персонализации, а не шаблонов</li>
+                            <li>✅ Интеграция с умными холодильниками (Samsung, LG)</li>
+                            <li>✅ Автоматический grocery delivery (партнерство с Instacart)</li>
+                            <li>✅ Современный UI/UX в стиле Apple</li>
+                            <li>✅ Адекватная цена: $8/месяц</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section id="strategy">
+                    <h2>🎯 Go-to-Market стратегия</h2>
+
+                    <h3>Фаза 1: MVP Launch (Месяцы 1-3)</h3>
+                    <ul>
+                        <li>🎯 <strong>Цель:</strong> 1,000 beta-пользователей</li>
+                        <li>📢 <strong>Каналы:</strong> Product Hunt, Reddit (r/fitness, r/mealprep), Instagram ads</li>
+                        <li>💰 <strong>Бюджет:</strong> $5K на маркетинг</li>
+                        <li>✅ <strong>Metrics:</strong> NPS > 50, DAU/MAU > 30%</li>
+                    </ul>
+
+                    <h3>Фаза 2: Growth (Месяцы 4-12)</h3>
+                    <ul>
+                        <li>🎯 <strong>Цель:</strong> 15,000 платных пользователей</li>
+                        <li>📢 <strong>Каналы:</strong> Influencer partnerships, TikTok, SEO</li>
+                        <li>💰 <strong>Бюджет:</strong> $25K/месяц на маркетинг</li>
+                        <li>🤝 <strong>Partnerships:</strong> Fitness apps (MyFitnessPal), grocery stores</li>
+                    </ul>
+
+                    <h3>Монетизация</h3>
+                    <ul>
+                        <li><strong>Freemium модель:</strong> Базовые фичи бесплатно, premium за $8/мес</li>
+                        <li><strong>Premium фичи:</strong> Unlimited recipes, grocery integration, family plans (до 6 человек)</li>
+                        <li><strong>B2B:</strong> Корпоративные wellness программы ($15/user/год)</li>
+                        <li><strong>Комиссии:</strong> 5% от заказов через grocery partners</li>
+                    </ul>
+                </section>
+
+                <section id="financials">
+                    <h2>💰 Финансовый прогноз</h2>
+
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <div class="info-card-title">Год 1</div>
+                            <div class="info-card-value" style="color: var(--accent-blue);">$180K</div>
+                            <p style="margin-top: 8px; font-size: 13px;">15K users × $12 ARR</p>
+                        </div>
+
+                        <div class="info-card">
+                            <div class="info-card-title">Год 2</div>
+                            <div class="info-card-value" style="color: var(--accent-green);">$720K</div>
+                            <p style="margin-top: 8px; font-size: 13px;">60K users × $12 ARR</p>
+                        </div>
+
+                        <div class="info-card">
+                            <div class="info-card-title">Год 3</div>
+                            <div class="info-card-value" style="color: var(--accent-green);">$2.4M</div>
+                            <p style="margin-top: 8px; font-size: 13px;">200K users × $12 ARR</p>
+                        </div>
+
+                        <div class="info-card">
+                            <div class="info-card-title">Gross Margin</div>
+                            <div class="info-card-value" style="color: var(--accent-green);">65%</div>
+                            <p style="margin-top: 8px; font-size: 13px;">После всех расходов</p>
+                        </div>
+                    </div>
+
+                    <h3>Структура расходов (Год 1)</h3>
+                    <ul>
+                        <li>👨‍💻 <strong>Разработка:</strong> $80K (2 разработчика × $40K)</li>
+                        <li>📢 <strong>Маркетинг:</strong> $60K ($5K/месяц)</li>
+                        <li>☁️ <strong>Инфраструктура:</strong> $15K (AWS, OpenAI API)</li>
+                        <li>💼 <strong>Операционные:</strong> $25K (юристы, бухгалтерия)</li>
+                        <li>📊 <strong>Итого:</strong> $180K</li>
+                    </ul>
+
+                    <div class="highlight-box">
+                        <strong>💡 Break-even point:</strong> Месяц 8 при достижении 12,000 платных пользователей
+                    </div>
+                </section>
+
+                <section id="roadmap">
+                    <h2>🗺️ Roadmap развития</h2>
+
+                    <div class="roadmap-item">
+                        <div class="roadmap-phase">Месяц 1-2 • MVP</div>
+                        <div class="roadmap-title">MVP разработка</div>
+                        <div class="roadmap-description">
+                            • AI meal planning с GPT-4<br>
+                            • Базовая генерация рецептов<br>
+                            • Grocery list export<br>
+                            • iOS приложение
+                        </div>
+                    </div>
+
+                    <div class="roadmap-item">
+                        <div class="roadmap-phase">Месяц 3-4 • Beta Launch</div>
+                        <div class="roadmap-title">Beta тестирование и итерации</div>
+                        <div class="roadmap-description">
+                            • 1000 beta пользователей<br>
+                            • Сбор feedback и улучшения<br>
+                            • Android версия<br>
+                            • Payment integration (Stripe)
+                        </div>
+                    </div>
+
+                    <div class="roadmap-item">
+                        <div class="roadmap-phase">Месяц 5-8 • Growth</div>
+                        <div class="roadmap-title">Масштабирование</div>
+                        <div class="roadmap-description">
+                            • Grocery delivery integration (Instacart)<br>
+                            • Family plans (до 6 пользователей)<br>
+                            • Smart fridge integration<br>
+                            • Nutrition tracking
+                        </div>
+                    </div>
+
+                    <div class="roadmap-item">
+                        <div class="roadmap-phase">Месяц 9-12 • Expansion</div>
+                        <div class="roadmap-title">Новые рынки и фичи</div>
+                        <div class="roadmap-description">
+                            • B2B продукт для корпораций<br>
+                            • Международная экспансия (UK, Germany)<br>
+                            • AI cooking assistant (голосовой помощник)<br>
+                            • Recipe marketplace
+                        </div>
+                    </div>
+                </section>
+
+                <section id="risks">
+                    <h2>⚠️ Риски и митигация</h2>
+
+                    <h3>Высокие риски</h3>
+                    <ul>
+                        <li>
+                            <strong>❌ Риск:</strong> Конкуренция с крупными игроками (Apple Health, Google Fit могут запустить аналог)<br>
+                            <strong>✅ Митигация:</strong> Быстрый захват ниши, фокус на качество AI, создание loyal community
+                        </li>
+                        <li>
+                            <strong>❌ Риск:</strong> Высокая стоимость OpenAI API при масштабировании<br>
+                            <strong>✅ Митигация:</strong> Кеширование рецептов, переход на собственную fine-tuned модель при 50K+ пользователей
+                        </li>
+                    </ul>
+
+                    <h3>Средние риски</h3>
+                    <ul>
+                        <li>
+                            <strong>❌ Риск:</strong> Низкий retention rate (типично для meal planning apps: ~20-30%)<br>
+                            <strong>✅ Митигация:</strong> Gamification, streaks, social features, weekly challenges
+                        </li>
+                        <li>
+                            <strong>❌ Риск:</strong> Проблемы с качеством AI-генерации рецептов<br>
+                            <strong>✅ Митигация:</strong> Human moderation первые 6 месяцев, rating system, continuous training
+                        </li>
+                    </ul>
+
+                    <div class="highlight-box">
+                        <strong>✅ Общий risk score: СРЕДНИЙ</strong><br>
+                        Большинство рисков управляемы при правильном execution и достаточном funding.
+                    </div>
+                </section>
+
+                <section style="margin-top: var(--space-8); padding-top: var(--space-6); border-top: 2px solid var(--border);">
+                    <h2>🤖 Хотите обсудить эту идею?</h2>
+                    <p>AI агент уже проанализировал этот бизнес-план и готов ответить на ваши вопросы:</p>
+                    <ul>
+                        <li>Стоит ли инвестировать в эту идею?</li>
+                        <li>Какие есть альтернативные стратегии монетизации?</li>
+                        <li>Как снизить риски?</li>
+                        <li>Что изменить в roadmap?</li>
+                    </ul>
+                    <p style="margin-top: var(--space-2); color: var(--accent-purple); font-weight: 600;">
+                        👉 Нажмите на кнопку "AI Консультант" в правом нижнем углу
+                    </p>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- AI Chat Button -->
+    <button class="ai-chat-button" onclick="alert('AI Chat откроется здесь!\n\nВы сможете спросить:\n• Стоит ли инвестировать?\n• Какие альтернативы?\n• Как снизить риски?\n• И любые другие вопросы!')">
+        💬 AI Консультант
+    </button>
+
+    <script>
+        // Smooth scroll for navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.querySelector(item.getAttribute('href'));
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                // Update active state
+                document.querySelectorAll('.nav-item').forEach(navItem => {
+                    navItem.classList.remove('active');
+                });
+                item.classList.add('active');
+            });
+        });
+
+        console.log('📊 Idea Detail Page loaded');
+        console.log('💡 Full business plan with competitors, strategy, financials, roadmap');
+    </script>
+</body>
+</html>

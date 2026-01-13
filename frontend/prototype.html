@@ -1,0 +1,1865 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Business Portfolio Manager - Prototype</title>
+    <style>
+        /* CSS Variables - Design System */
+        :root {
+            /* Colors - Light Mode */
+            --background: #FAFAFA;
+            --surface: #FFFFFF;
+            --border: #E5E5E5;
+            --text-primary: #171717;
+            --text-secondary: #737373;
+            --text-tertiary: #A3A3A3;
+
+            /* Accent Colors */
+            --accent-blue: #3B82F6;
+            --accent-green: #10B981;
+            --accent-purple: #8B5CF6;
+            --accent-orange: #F59E0B;
+            --accent-red: #EF4444;
+            --accent-pink: #EC4899;
+
+            /* Spacing (8px base) */
+            --space-1: 8px;
+            --space-2: 16px;
+            --space-3: 24px;
+            --space-4: 32px;
+            --space-6: 48px;
+            --space-8: 64px;
+
+            /* Border Radius */
+            --radius-sm: 6px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-full: 9999px;
+
+            /* Shadows */
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.05);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.08);
+
+            /* Typography */
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", sans-serif;
+        }
+
+        /* Reset & Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1536px;
+            margin: 0 auto;
+            padding: 0 var(--space-3);
+        }
+
+        /* Top Bar */
+        .topbar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: var(--space-2) 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .topbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+        }
+
+        .logo-icon {
+            font-size: 24px;
+        }
+
+        .topbar-actions {
+            display: flex;
+            gap: var(--space-2);
+            align-items: center;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: var(--space-1) var(--space-2);
+            min-width: 300px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box:focus-within {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-box input {
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 14px;
+            flex: 1;
+            margin-left: var(--space-1);
+        }
+
+        .icon-button {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 18px;
+        }
+
+        .icon-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: var(--space-6) 0;
+        }
+
+        /* Metric Cards Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-3);
+            margin-bottom: var(--space-6);
+        }
+
+        .metric-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-3);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--space-2);
+        }
+
+        .metric-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .metric-icon {
+            font-size: 24px;
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: var(--space-1);
+        }
+
+        .metric-change {
+            font-size: 14px;
+            color: var(--accent-green);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .metric-change.negative {
+            color: var(--accent-red);
+        }
+
+        /* Section */
+        .section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+            margin-bottom: var(--space-4);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-3);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+        }
+
+        .view-all {
+            font-size: 14px;
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .view-all:hover {
+            color: var(--accent-purple);
+        }
+
+        /* Idea Cards */
+        .ideas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: var(--space-3);
+        }
+
+        .idea-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: var(--space-3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .idea-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent-blue);
+            transform: scaleY(0);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .idea-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .idea-card:hover::before {
+            transform: scaleY(1);
+        }
+
+        .idea-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--space-2);
+        }
+
+        .idea-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: var(--space-1);
+            color: var(--text-primary);
+        }
+
+        .idea-meta {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-bottom: var(--space-2);
+        }
+
+        .score-badge {
+            background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: var(--radius-full);
+            font-size: 14px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .metrics-list {
+            margin: var(--space-2) 0;
+        }
+
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-1);
+            font-size: 13px;
+        }
+
+        .metric-label-small {
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 6px;
+            background: var(--border);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+            margin: 0 var(--space-1);
+            max-width: 100px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            border-radius: var(--radius-full);
+            transition: width 0.3s ease;
+        }
+
+        .metric-value-small {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Financial Metrics */
+        .financial-metrics {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: var(--space-2);
+            margin: var(--space-2) 0;
+        }
+
+        .financial-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-2);
+        }
+
+        @media (max-width: 1024px) {
+            .financial-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .financial-item {
+            text-align: center;
+        }
+
+        .financial-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .financial-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .financial-value.good {
+            color: var(--accent-green);
+        }
+
+        .financial-value.medium {
+            color: var(--accent-orange);
+        }
+
+        .financial-value.highlight {
+            color: var(--accent-blue);
+        }
+
+        .financial-subtitle {
+            font-size: 10px;
+            color: var(--text-tertiary);
+            margin-top: 2px;
+        }
+
+        /* Buttons */
+        .button {
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-sm);
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .button-primary {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .button-primary:hover {
+            background: #2563EB;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .button-secondary {
+            background: var(--background);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .button-secondary:hover {
+            background: var(--surface);
+            transform: translateY(-1px);
+        }
+
+        .button-ai {
+            background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+            color: white;
+        }
+
+        .button-ai:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+        }
+
+        .idea-actions {
+            display: flex;
+            gap: var(--space-1);
+            margin-top: var(--space-2);
+            padding-top: var(--space-2);
+            border-top: 1px solid var(--border);
+        }
+
+        /* AI Chat Floating Button */
+        .ai-chat-fab {
+            position: fixed;
+            bottom: var(--space-4);
+            right: var(--space-4);
+            width: 60px;
+            height: 60px;
+            border-radius: var(--radius-full);
+            background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+        }
+
+        .ai-chat-fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 32px rgba(139, 92, 246, 0.5);
+        }
+
+        /* Trending Badge */
+        .trending-badge {
+            position: absolute;
+            top: var(--space-2);
+            right: var(--space-2);
+            background: linear-gradient(135deg, #F59E0B 0%, #EF4444 100%);
+            color: white;
+            padding: 4px 10px;
+            border-radius: var(--radius-full);
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        /* Trend Chart */
+        .trend-chart-container {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+            margin-bottom: var(--space-4);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-3);
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: var(--space-2);
+            font-size: 13px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .mini-chart {
+            width: 100%;
+            height: 80px;
+            margin-top: var(--space-1);
+        }
+
+        .mini-chart-line {
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .mini-chart-area {
+            opacity: 0.1;
+        }
+
+        /* AI Chat Panel */
+        .ai-chat-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 420px;
+            height: 100vh;
+            background: var(--surface);
+            border-left: 1px solid var(--border);
+            box-shadow: -8px 0 24px rgba(0,0,0,0.08);
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ai-chat-panel.open {
+            transform: translateX(0);
+        }
+
+        .chat-header {
+            padding: var(--space-3);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+            color: white;
+        }
+
+        .chat-title {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+        }
+
+        .chat-close {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .chat-close:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-3);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+        }
+
+        .chat-message {
+            display: flex;
+            gap: var(--space-2);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-message.user {
+            flex-direction: row-reverse;
+        }
+
+        .chat-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .chat-avatar.ai {
+            background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+        }
+
+        .chat-avatar.user {
+            background: var(--accent-blue);
+        }
+
+        .chat-bubble {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: var(--space-2);
+            max-width: 280px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .chat-message.user .chat-bubble {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+
+        .chat-bubble strong {
+            font-weight: 600;
+        }
+
+        .chat-timestamp {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            margin-top: 4px;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: var(--space-2);
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-tertiary);
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+
+        .quick-actions {
+            padding: var(--space-2);
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: var(--space-1);
+            flex-wrap: wrap;
+        }
+
+        .quick-action-btn {
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+
+        .chat-input-container {
+            padding: var(--space-3);
+            border-top: 1px solid var(--border);
+        }
+
+        .chat-input {
+            display: flex;
+            gap: var(--space-1);
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: var(--space-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .chat-input input:focus {
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        .chat-send-btn {
+            background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+            color: white;
+            border: none;
+            padding: var(--space-2);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 18px;
+            transition: transform 0.2s;
+        }
+
+        .chat-send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            --background: #0A0A0A;
+            --surface: #171717;
+            --border: #262626;
+            --text-primary: #FAFAFA;
+            --text-secondary: #A3A3A3;
+            --text-tertiary: #737373;
+        }
+
+        .dark-mode-toggle {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 18px;
+        }
+
+        .dark-mode-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Filters */
+        .filters-bar {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-3);
+            margin-bottom: var(--space-4);
+            display: flex;
+            gap: var(--space-2);
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+        }
+
+        .filter-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .filter-select {
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--background);
+            font-size: 13px;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .filter-select:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .filter-reset {
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--surface);
+            font-size: 13px;
+            cursor: pointer;
+            margin-left: auto;
+            transition: all 0.2s;
+        }
+
+        .filter-reset:hover {
+            background: var(--accent-red);
+            color: white;
+            border-color: var(--accent-red);
+        }
+
+        /* Command Palette */
+        .command-palette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 15vh;
+        }
+
+        .command-palette.open {
+            display: flex;
+        }
+
+        .command-palette-content {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            width: 600px;
+            max-height: 60vh;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideDown 0.2s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .command-input {
+            padding: var(--space-3);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .command-input input {
+            width: 100%;
+            padding: var(--space-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 16px;
+            outline: none;
+        }
+
+        .command-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .command-item {
+            padding: var(--space-2) var(--space-3);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+
+        .command-item:hover, .command-item.selected {
+            background: var(--background);
+        }
+
+        .command-icon {
+            font-size: 20px;
+        }
+
+        .command-text {
+            flex: 1;
+        }
+
+        .command-text-title {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .command-text-subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .command-shortcut {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            background: var(--background);
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .search-box {
+                min-width: 200px;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .ideas-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .ai-chat-panel {
+                width: 100%;
+            }
+
+            .command-palette-content {
+                width: 90%;
+            }
+
+            .filters-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-reset {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="topbar">
+        <div class="container">
+            <div class="topbar-content">
+                <div class="logo">
+                    <span class="logo-icon">🚀</span>
+                    <span>AI Portfolio Manager</span>
+                </div>
+
+                <div class="topbar-actions">
+                    <div class="search-box">
+                        <span>🔍</span>
+                        <input type="text" placeholder="Поиск идей, трендов..." id="search-input">
+                    </div>
+
+                    <button class="dark-mode-toggle" id="dark-mode-toggle" title="Toggle Dark Mode">
+                        🌙
+                    </button>
+
+                    <button class="icon-button" id="command-palette-btn" title="Command Palette (⌘+K)">
+                        ⌘
+                    </button>
+
+                    <button class="icon-button" title="Уведомления">
+                        🔔
+                    </button>
+
+                    <button class="icon-button" title="Профиль">
+                        👤
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <!-- Metrics Grid -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div>
+                            <div class="metric-label">Всего идей</div>
+                        </div>
+                        <div class="metric-icon">📊</div>
+                    </div>
+                    <div class="metric-value">247</div>
+                    <div class="metric-change">
+                        ↑ +23 за неделю
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div>
+                            <div class="metric-label">Активных бизнесов</div>
+                        </div>
+                        <div class="metric-icon">💼</div>
+                    </div>
+                    <div class="metric-value">12</div>
+                    <div class="metric-change">
+                        ↑ $47K выручка
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div>
+                            <div class="metric-label">В разработке</div>
+                        </div>
+                        <div class="metric-icon">💻</div>
+                    </div>
+                    <div class="metric-value">8</div>
+                    <div class="metric-change">
+                        ↑ +2 в этом месяце
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div>
+                            <div class="metric-label">AI анализов сегодня</div>
+                        </div>
+                        <div class="metric-icon">🤖</div>
+                    </div>
+                    <div class="metric-value">34</div>
+                    <div class="metric-change">
+                        ↑ +12 с утра
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trend Analytics Chart -->
+            <div class="trend-chart-container">
+                <div class="chart-header">
+                    <h3 class="chart-title">📈 Анализ трендов за последние 30 дней</h3>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <span class="legend-dot" style="background: #3B82F6;"></span>
+                            <span>Поисковые запросы</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot" style="background: #10B981;"></span>
+                            <span>Упоминания в соцсетях</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot" style="background: #F59E0B;"></span>
+                            <span>Инвестиции в сектор</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SVG Chart -->
+                <svg class="mini-chart" viewBox="0 0 400 80" preserveAspectRatio="none">
+                    <!-- Grid lines -->
+                    <line x1="0" y1="20" x2="400" y2="20" stroke="#E5E5E5" stroke-width="1"/>
+                    <line x1="0" y1="40" x2="400" y2="40" stroke="#E5E5E5" stroke-width="1"/>
+                    <line x1="0" y1="60" x2="400" y2="60" stroke="#E5E5E5" stroke-width="1"/>
+
+                    <!-- Search queries trend (blue) -->
+                    <path class="mini-chart-area" d="M0,70 L50,65 L100,58 L150,50 L200,42 L250,35 L300,28 L350,22 L400,18 L400,80 L0,80 Z" fill="#3B82F6"/>
+                    <path class="mini-chart-line" d="M0,70 L50,65 L100,58 L150,50 L200,42 L250,35 L300,28 L350,22 L400,18" stroke="#3B82F6"/>
+
+                    <!-- Social media mentions (green) -->
+                    <path class="mini-chart-area" d="M0,75 L50,72 L100,68 L150,62 L200,55 L250,48 L300,40 L350,32 L400,25 L400,80 L0,80 Z" fill="#10B981"/>
+                    <path class="mini-chart-line" d="M0,75 L50,72 L100,68 L150,62 L200,55 L250,48 L300,40 L350,32 L400,25" stroke="#10B981"/>
+
+                    <!-- Investments (orange) -->
+                    <path class="mini-chart-area" d="M0,78 L50,76 L100,74 L150,70 L200,65 L250,58 L300,50 L350,42 L400,35 L400,80 L0,80 Z" fill="#F59E0B"/>
+                    <path class="mini-chart-line" d="M0,78 L50,76 L100,74 L150,70 L200,65 L250,58 L300,50 L350,42 L400,35" stroke="#F59E0B"/>
+                </svg>
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); margin-top: var(--space-3);">
+                    <div style="text-align: center;">
+                        <div style="font-size: 24px; font-weight: 700; color: #3B82F6;">+127%</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">Рост поисковых запросов</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 24px; font-weight: 700; color: #10B981;">+94%</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">Рост упоминаний</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 24px; font-weight: 700; color: #F59E0B;">+156%</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">Рост инвестиций</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters Bar -->
+            <div class="filters-bar">
+                <div class="filter-group">
+                    <span class="filter-label">💵 Инвестиции:</span>
+                    <select class="filter-select" id="filter-investment">
+                        <option value="all">Все</option>
+                        <option value="low">&lt; $50K</option>
+                        <option value="medium">$50K - $100K</option>
+                        <option value="high">&gt; $100K</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <span class="filter-label">⏱️ Окупаемость:</span>
+                    <select class="filter-select" id="filter-payback">
+                        <option value="all">Все</option>
+                        <option value="fast">&lt; 6 месяцев</option>
+                        <option value="medium">6-12 месяцев</option>
+                        <option value="slow">&gt; 12 месяцев</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <span class="filter-label">📊 Маржа:</span>
+                    <select class="filter-select" id="filter-margin">
+                        <option value="all">Все</option>
+                        <option value="low">&lt; 40%</option>
+                        <option value="medium">40% - 60%</option>
+                        <option value="high">&gt; 60%</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <span class="filter-label">⭐ Рейтинг:</span>
+                    <select class="filter-select" id="filter-score">
+                        <option value="all">Все</option>
+                        <option value="high">&gt; 8.0</option>
+                        <option value="medium">7.0 - 8.0</option>
+                        <option value="low">&lt; 7.0</option>
+                    </select>
+                </div>
+
+                <button class="filter-reset" id="filter-reset">🔄 Сбросить</button>
+            </div>
+
+            <!-- Trending Ideas Section -->
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <span>🔥</span>
+                        <span>Горячие тренды</span>
+                    </h2>
+                    <a href="#" class="view-all">Смотреть все →</a>
+                </div>
+
+                <div class="ideas-grid">
+                    <!-- Idea Card 1 -->
+                    <div class="idea-card">
+                        <div class="trending-badge">
+                            🔥 TRENDING
+                        </div>
+                        <div class="idea-header">
+                            <div>
+                                <h3 class="idea-title">🍽️ AI Personal Chef App</h3>
+                                <div class="idea-meta">Reddit r/FoodTech • 2 часа назад</div>
+                            </div>
+                        </div>
+
+                        <div class="score-badge">
+                            ⭐ 8.4/10
+                        </div>
+
+                        <div class="metrics-list">
+                            <div class="metric-item">
+                                <span class="metric-label-small">💡 Размер рынка</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 80%"></div>
+                                </div>
+                                <span class="metric-value-small">8/10</span>
+                            </div>
+
+                            <div class="metric-item">
+                                <span class="metric-label-small">🎯 Конкуренция</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 60%"></div>
+                                </div>
+                                <span class="metric-value-small">6/10</span>
+                            </div>
+
+                            <div class="metric-item">
+                                <span class="metric-label-small">🔥 Спрос</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 90%"></div>
+                                </div>
+                                <span class="metric-value-small">9/10</span>
+                            </div>
+
+                            <div class="metric-item">
+                                <span class="metric-label-small">💰 Монетизация</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 80%"></div>
+                                </div>
+                                <span class="metric-value-small">8/10</span>
+                            </div>
+                        </div>
+
+                        <div class="financial-metrics">
+                            <div class="financial-grid">
+                                <div class="financial-item">
+                                    <div class="financial-label">💵 Инвестиции</div>
+                                    <div class="financial-value highlight">$45K</div>
+                                    <div class="financial-subtitle">стартовый капитал</div>
+                                </div>
+                                <div class="financial-item">
+                                    <div class="financial-label">⏱️ Окупаемость</div>
+                                    <div class="financial-value good">8 мес</div>
+                                    <div class="financial-subtitle">быстрый ROI</div>
+                                </div>
+                                <div class="financial-item">
+                                    <div class="financial-label">📊 Маржа</div>
+                                    <div class="financial-value good">65%</div>
+                                    <div class="financial-subtitle">высокая</div>
+                                </div>
+                                <div class="financial-item">
+                                    <div class="financial-label">💰 Годовой доход</div>
+                                    <div class="financial-value good">$180K</div>
+                                    <div class="financial-subtitle">ARR через 1 год</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="idea-actions">
+                            <button class="button button-ai">
+                                💬 Спросить AI
+                            </button>
+                            <a href="idea-detail.html" class="button button-secondary" style="text-decoration: none;">
+                                📋 Детали
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Idea Card 2 -->
+                    <div class="idea-card">
+                        <div class="idea-header">
+                            <div>
+                                <h3 class="idea-title">⚡ No-Code Automation Platform</h3>
+                                <div class="idea-meta">Product Hunt • 5 часов назад</div>
+                            </div>
+                        </div>
+
+                        <div class="score-badge" style="background: linear-gradient(135deg, #F59E0B 0%, #EF4444 100%);">
+                            ⭐ 9.1/10
+                        </div>
+
+                        <div class="metrics-list">
+                            <div class="metric-item">
+                                <span class="metric-label-small">💡 Размер рынка</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 95%"></div>
+                                </div>
+                                <span class="metric-value-small">9.5/10</span>
+                            </div>
+
+                            <div class="metric-item">
+                                <span class="metric-label-small">🎯 Конкуренция</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 70%"></div>
+                                </div>
+                                <span class="metric-value-small">7/10</span>
+                            </div>
+
+                            <div class="metric-item">
+                                <span class="metric-label-small">🔥 Спрос</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 95%"></div>
+                                </div>
+                                <span class="metric-value-small">9.5/10</span>
+                            </div>
+
+                            <div class="metric-item">
+                                <span class="metric-label-small">💰 Монетизация</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 85%"></div>
+                                </div>
+                                <span class="metric-value-small">8.5/10</span>
+                            </div>
+                        </div>
+
+                        <div class="financial-metrics">
+                            <div class="financial-grid">
+                                <div class="financial-item">
+                                    <div class="financial-label">💵 Инвестиции</div>
+                                    <div class="financial-value highlight">$120K</div>
+                                    <div class="financial-subtitle">стартовый капитал</div>
+                                </div>
+                                <div class="financial-item">
+                                    <div class="financial-label">⏱️ Окупаемость</div>
+                                    <div class="financial-value medium">14 мес</div>
+                                    <div class="financial-subtitle">средний ROI</div>
+                                </div>
+                                <div class="financial-item">
+                                    <div class="financial-label">📊 Маржа</div>
+                                    <div class="financial-value good">78%</div>
+                                    <div class="financial-subtitle">очень высокая</div>
+                                </div>
+                                <div class="financial-item">
+                                    <div class="financial-label">💰 Годовой доход</div>
+                                    <div class="financial-value good">$540K</div>
+                                    <div class="financial-subtitle">ARR через 1 год</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="idea-actions">
+                            <button class="button button-ai">
+                                💬 Спросить AI
+                            </button>
+                            <a href="idea-detail.html" class="button button-secondary" style="text-decoration: none;">
+                                📋 Детали
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Idea Card 3 -->
+                    <div class="idea-card">
+                        <div class="trending-badge">
+                            🔥 TRENDING
+                        </div>
+                        <div class="idea-header">
+                            <div>
+                                <h3 class="idea-title">🏥 Telemedicine for Pets</h3>
+                                <div class="idea-meta">TechCrunch • 1 день назад</div>
+                            </div>
+                        </div>
+
+                        <div class="score-badge" style="background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);">
+                            ⭐ 7.8/10
+                        </div>
+
+                        <div class="metrics-list">
+                            <div class="metric-item">
+                                <span class="metric-label-small">💡 Размер рынка</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 75%"></div>
+                                </div>
+                                <span class="metric-value-small">7.5/10</span>
+                            </div>
+
+                            <div class="metric-item">
+                                <span class="metric-label-small">🎯 Конкуренция</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 55%"></div>
+                                </div>
+                                <span class="metric-value-small">5.5/10</span>
+                            </div>
+
+                            <div class="metric-item">
+                                <span class="metric-label-small">🔥 Спрос</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 85%"></div>
+                                </div>
+                                <span class="metric-value-small">8.5/10</span>
+                            </div>
+
+                            <div class="metric-item">
+                                <span class="metric-label-small">💰 Монетизация</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 80%"></div>
+                                </div>
+                                <span class="metric-value-small">8/10</span>
+                            </div>
+                        </div>
+
+                        <div class="financial-metrics">
+                            <div class="financial-grid">
+                                <div class="financial-item">
+                                    <div class="financial-label">💵 Инвестиции</div>
+                                    <div class="financial-value highlight">$28K</div>
+                                    <div class="financial-subtitle">стартовый капитал</div>
+                                </div>
+                                <div class="financial-item">
+                                    <div class="financial-label">⏱️ Окупаемость</div>
+                                    <div class="financial-value good">6 мес</div>
+                                    <div class="financial-subtitle">очень быстро</div>
+                                </div>
+                                <div class="financial-item">
+                                    <div class="financial-label">📊 Маржа</div>
+                                    <div class="financial-value good">52%</div>
+                                    <div class="financial-subtitle">хорошая</div>
+                                </div>
+                                <div class="financial-item">
+                                    <div class="financial-label">💰 Годовой доход</div>
+                                    <div class="financial-value good">$95K</div>
+                                    <div class="financial-subtitle">ARR через 1 год</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="idea-actions">
+                            <button class="button button-ai">
+                                💬 Спросить AI
+                            </button>
+                            <a href="idea-detail.html" class="button button-secondary" style="text-decoration: none;">
+                                📋 Детали
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity Section -->
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <span>📈</span>
+                        <span>Активные проекты</span>
+                    </h2>
+                    <a href="#" class="view-all">Смотреть все →</a>
+                </div>
+
+                <div class="ideas-grid">
+                    <div class="idea-card">
+                        <div class="idea-header">
+                            <div>
+                                <h3 class="idea-title">💼 SaaS Analytics Dashboard</h3>
+                                <div class="idea-meta">В разработке • Запуск через 2 недели</div>
+                            </div>
+                        </div>
+
+                        <div style="margin: var(--space-2) 0;">
+                            <div class="metric-item">
+                                <span class="metric-label-small">Backend</span>
+                                <div class="progress-bar" style="max-width: 200px;">
+                                    <div class="progress-fill" style="width: 75%; background: var(--accent-green);"></div>
+                                </div>
+                                <span class="metric-value-small">75%</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label-small">Frontend</span>
+                                <div class="progress-bar" style="max-width: 200px;">
+                                    <div class="progress-fill" style="width: 60%; background: var(--accent-blue);"></div>
+                                </div>
+                                <span class="metric-value-small">60%</span>
+                            </div>
+                        </div>
+
+                        <div class="idea-actions">
+                            <button class="button button-primary">
+                                💻 Открыть код
+                            </button>
+                            <button class="button button-secondary">
+                                📊 Метрики
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="idea-card">
+                        <div class="idea-header">
+                            <div>
+                                <h3 class="idea-title">🛒 E-commerce Optimizer</h3>
+                                <div class="idea-meta">Запущен • $12K MRR</div>
+                            </div>
+                        </div>
+
+                        <div style="margin: var(--space-2) 0;">
+                            <div class="metric-item">
+                                <span class="metric-label-small">💰 MRR</span>
+                                <span class="metric-value-small" style="color: var(--accent-green);">$12,450</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label-small">👥 Users</span>
+                                <span class="metric-value-small">1,247</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label-small">📈 Growth</span>
+                                <span class="metric-value-small" style="color: var(--accent-green);">+23% ↑</span>
+                            </div>
+                        </div>
+
+                        <div class="idea-actions">
+                            <button class="button button-primary">
+                                📊 Dashboard
+                            </button>
+                            <button class="button button-secondary">
+                                💰 Sales
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Chat Floating Button -->
+    <div class="ai-chat-fab" id="ai-chat-fab" title="Открыть AI Консультант">
+        💬
+    </div>
+
+    <!-- AI Chat Panel -->
+    <div class="ai-chat-panel" id="ai-chat-panel">
+        <div class="chat-header">
+            <div class="chat-title">
+                <span>🤖</span>
+                <span>AI Консультант</span>
+            </div>
+            <button class="chat-close" id="chat-close">✕</button>
+        </div>
+
+        <div class="chat-messages" id="chat-messages">
+            <!-- Initial message -->
+            <div class="chat-message">
+                <div class="chat-avatar ai">🤖</div>
+                <div>
+                    <div class="chat-bubble">
+                        Привет! Я AI консультант. Я уже изучил все ваши бизнес-идеи.<br><br>
+                        <strong>Чем могу помочь?</strong><br>
+                        • Оценить перспективность идеи<br>
+                        • Сравнить несколько идей<br>
+                        • Проанализировать риски<br>
+                        • Предложить стратегию
+                    </div>
+                    <div class="chat-timestamp">Сейчас</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <button class="quick-action-btn" onclick="sendQuickMessage('Какая идея самая прибыльная?')">💰 Самая прибыльная?</button>
+            <button class="quick-action-btn" onclick="sendQuickMessage('Какая идея быстрее окупится?')">⚡ Быстрая окупаемость?</button>
+            <button class="quick-action-btn" onclick="sendQuickMessage('Сравни топ 3 идеи')">📊 Сравни топ-3</button>
+            <button class="quick-action-btn" onclick="sendQuickMessage('Какие риски?')">⚠️ Риски?</button>
+        </div>
+
+        <div class="chat-input-container">
+            <div class="chat-input">
+                <input type="text" id="chat-input" placeholder="Задайте вопрос...">
+                <button class="chat-send-btn" id="chat-send">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Command Palette -->
+    <div class="command-palette" id="command-palette">
+        <div class="command-palette-content">
+            <div class="command-input">
+                <input type="text" id="command-input" placeholder="Введите команду или поиск...">
+            </div>
+            <div class="command-list">
+                <div class="command-item" onclick="toggleDarkMode()">
+                    <span class="command-icon">🌙</span>
+                    <div class="command-text">
+                        <div class="command-text-title">Toggle Dark Mode</div>
+                        <div class="command-text-subtitle">Переключить темную тему</div>
+                    </div>
+                    <span class="command-shortcut">⌘ D</span>
+                </div>
+                <div class="command-item" onclick="openAIChat()">
+                    <span class="command-icon">💬</span>
+                    <div class="command-text">
+                        <div class="command-text-title">Open AI Chat</div>
+                        <div class="command-text-subtitle">Открыть AI консультанта</div>
+                    </div>
+                    <span class="command-shortcut">⌘ /</span>
+                </div>
+                <div class="command-item" onclick="window.location.href='idea-detail.html'">
+                    <span class="command-icon">📋</span>
+                    <div class="command-text">
+                        <div class="command-text-title">View Idea Details</div>
+                        <div class="command-text-subtitle">Открыть детальную страницу</div>
+                    </div>
+                </div>
+                <div class="command-item" onclick="resetFilters()">
+                    <span class="command-icon">🔄</span>
+                    <div class="command-text">
+                        <div class="command-text-title">Reset Filters</div>
+                        <div class="command-text-subtitle">Сбросить все фильтры</div>
+                    </div>
+                </div>
+                <div class="command-item" onclick="alert('Export to PDF coming soon!')">
+                    <span class="command-icon">📄</span>
+                    <div class="command-text">
+                        <div class="command-text-title">Export to PDF</div>
+                        <div class="command-text-subtitle">Экспортировать бизнес-план в PDF</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ AI Chat Panel ============
+        const chatFab = document.getElementById('ai-chat-fab');
+        const chatPanel = document.getElementById('ai-chat-panel');
+        const chatClose = document.getElementById('chat-close');
+        const chatInput = document.getElementById('chat-input');
+        const chatSend = document.getElementById('chat-send');
+        const chatMessages = document.getElementById('chat-messages');
+
+        function openAIChat() {
+            chatPanel.classList.add('open');
+            chatInput.focus();
+        }
+
+        function closeAIChat() {
+            chatPanel.classList.remove('open');
+        }
+
+        chatFab.addEventListener('click', openAIChat);
+        chatClose.addEventListener('click', closeAIChat);
+
+        function sendMessage(message) {
+            if (!message.trim()) return;
+
+            // Add user message
+            const userMsg = document.createElement('div');
+            userMsg.className = 'chat-message user';
+            userMsg.innerHTML = `
+                <div class="chat-avatar user">👤</div>
+                <div>
+                    <div class="chat-bubble">${message}</div>
+                    <div class="chat-timestamp">Только что</div>
+                </div>
+            `;
+            chatMessages.appendChild(userMsg);
+
+            // Show typing indicator
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'chat-message';
+            typingIndicator.innerHTML = `
+                <div class="chat-avatar ai">🤖</div>
+                <div class="typing-indicator">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            `;
+            chatMessages.appendChild(typingIndicator);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Simulate AI response
+            setTimeout(() => {
+                typingIndicator.remove();
+                const aiMsg = document.createElement('div');
+                aiMsg.className = 'chat-message';
+                aiMsg.innerHTML = `
+                    <div class="chat-avatar ai">🤖</div>
+                    <div>
+                        <div class="chat-bubble">${getAIResponse(message)}</div>
+                        <div class="chat-timestamp">Только что</div>
+                    </div>
+                `;
+                chatMessages.appendChild(aiMsg);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 1500);
+
+            chatInput.value = '';
+        }
+
+        function getAIResponse(message) {
+            const msg = message.toLowerCase();
+
+            if (msg.includes('прибыльн') || msg.includes('доход')) {
+                return '<strong>No-Code Automation Platform</strong> — самая прибыльная идея!<br><br>💰 ARR: $540K через год<br>📊 Маржа: 78%<br>💵 Инвестиции: $120K<br><br>Высокий спрос на автоматизацию + SaaS модель = отличная маржинальность.';
+            }
+
+            if (msg.includes('окуп') || msg.includes('быстр')) {
+                return '<strong>Telemedicine for Pets</strong> окупится быстрее всех!<br><br>⏱️ Окупаемость: 6 месяцев<br>💵 Инвестиции: всего $28K<br>💰 ARR: $95K<br><br>Небольшие вложения + растущий рынок pet health = быстрый ROI.';
+            }
+
+            if (msg.includes('сравни') || msg.includes('топ')) {
+                return '<strong>Сравнение топ-3 идей:</strong><br><br>1️⃣ <strong>No-Code Platform</strong> (9.1/10)<br>✅ Самая высокая маржа 78%<br>✅ Огромный рынок<br>⚠️ Высокие инвестиции $120K<br><br>2️⃣ <strong>AI Personal Chef</strong> (8.4/10)<br>✅ Баланс инвестиций/дохода<br>✅ Быстрая окупаемость 8 мес<br><br>3️⃣ <strong>Telemedicine for Pets</strong> (7.8/10)<br>✅ Минимальные вложения $28K<br>✅ Самая быстрая окупаемость 6 мес';
+            }
+
+            if (msg.includes('риск')) {
+                return '<strong>Основные риски:</strong><br><br>⚠️ <strong>Конкуренция:</strong> Крупные игроки могут скопировать<br>⚠️ <strong>AI costs:</strong> OpenAI API может быть дорогим<br>⚠️ <strong>Retention:</strong> Сложно удержать пользователей<br><br><strong>Рекомендация:</strong> Начните с MVP, тестируйте retention, потом масштабируйте.';
+            }
+
+            return 'Отличный вопрос! Я проанализировал данные.<br><br>Могу дать более конкретный ответ, если уточните:<br>• О какой именно идее?<br>• Что вас интересует?<br>• Какой бюджет?';
+        }
+
+        function sendQuickMessage(message) {
+            sendMessage(message);
+        }
+
+        chatSend.addEventListener('click', () => sendMessage(chatInput.value));
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage(chatInput.value);
+        });
+
+        // ============ Dark Mode ============
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const icon = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+            darkModeToggle.textContent = icon;
+            closeCommandPalette();
+        }
+
+        darkModeToggle.addEventListener('click', toggleDarkMode);
+
+        // ============ Filters ============
+        const filterInvestment = document.getElementById('filter-investment');
+        const filterPayback = document.getElementById('filter-payback');
+        const filterMargin = document.getElementById('filter-margin');
+        const filterScore = document.getElementById('filter-score');
+        const filterReset = document.getElementById('filter-reset');
+
+        function resetFilters() {
+            filterInvestment.value = 'all';
+            filterPayback.value = 'all';
+            filterMargin.value = 'all';
+            filterScore.value = 'all';
+            applyFilters();
+            closeCommandPalette();
+        }
+
+        function applyFilters() {
+            const cards = document.querySelectorAll('.idea-card');
+            cards.forEach(card => {
+                card.style.display = 'block';
+            });
+
+            // Simple filter visualization (in production, this would filter based on actual data)
+            console.log('Filters applied:', {
+                investment: filterInvestment.value,
+                payback: filterPayback.value,
+                margin: filterMargin.value,
+                score: filterScore.value
+            });
+        }
+
+        filterInvestment.addEventListener('change', applyFilters);
+        filterPayback.addEventListener('change', applyFilters);
+        filterMargin.addEventListener('change', applyFilters);
+        filterScore.addEventListener('change', applyFilters);
+        filterReset.addEventListener('click', resetFilters);
+
+        // ============ Command Palette ============
+        const commandPalette = document.getElementById('command-palette');
+        const commandPaletteBtn = document.getElementById('command-palette-btn');
+        const commandInput = document.getElementById('command-input');
+
+        function openCommandPalette() {
+            commandPalette.classList.add('open');
+            commandInput.focus();
+        }
+
+        function closeCommandPalette() {
+            commandPalette.classList.remove('open');
+            commandInput.value = '';
+        }
+
+        commandPaletteBtn.addEventListener('click', openCommandPalette);
+        commandPalette.addEventListener('click', (e) => {
+            if (e.target === commandPalette) closeCommandPalette();
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Command+K or Ctrl+K - Open command palette
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                openCommandPalette();
+            }
+
+            // Command+/ or Ctrl+/ - Open AI chat
+            if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+                e.preventDefault();
+                openAIChat();
+            }
+
+            // Command+D or Ctrl+D - Toggle dark mode
+            if ((e.metaKey || e.ctrlKey) && e.key === 'd') {
+                e.preventDefault();
+                toggleDarkMode();
+            }
+
+            // Escape - Close modals
+            if (e.key === 'Escape') {
+                closeCommandPalette();
+                closeAIChat();
+            }
+        });
+
+        // ============ Search ============
+        const searchInput = document.getElementById('search-input');
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.idea-card');
+
+            cards.forEach(card => {
+                const title = card.querySelector('.idea-title').textContent.toLowerCase();
+                if (title.includes(query)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Console messages
+        console.log('🚀 AI Business Portfolio Manager - Advanced Prototype');
+        console.log('✅ AI Chat Panel with history');
+        console.log('✅ Dark Mode toggle');
+        console.log('✅ Filters (Investment, Payback, Margin, Score)');
+        console.log('✅ Command Palette (⌘+K)');
+        console.log('✅ Keyboard shortcuts');
+        console.log('');
+        console.log('Shortcuts:');
+        console.log('  ⌘+K - Command Palette');
+        console.log('  ⌘+/ - AI Chat');
+        console.log('  ⌘+D - Dark Mode');
+        console.log('  ESC - Close modals');
+    </script>
+</body>
+</html>
