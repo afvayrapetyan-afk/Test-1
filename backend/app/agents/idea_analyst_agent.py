@@ -159,6 +159,10 @@ class IdeaAnalystAgent(BaseAgent):
 
         3. Provide detailed reasoning and evidence for each score
 
+        4. Generate a detailed implementation roadmap with 4-6 phases (each phase should include phase number, title, duration in weeks, 3-5 tasks, resources needed, budget, and dependencies on previous phases)
+
+        5. Create a budget breakdown with categories: Development, Infrastructure, Marketing, Operations, Contingency (15-20%)
+
         **Output Format (JSON):**
         {{
             "title": "Business idea title (max 100 chars)",
@@ -194,6 +198,37 @@ class IdeaAnalystAgent(BaseAgent):
                     "reasoning": "Development timeline",
                     "evidence": "MVP scope"
                 }}
+            }},
+            "roadmap": {{
+                "phases": [
+                    {{
+                        "phase": 1,
+                        "title": "MVP Development",
+                        "duration": "3 weeks",
+                        "tasks": ["Setup infrastructure", "Core API", "Basic UI"],
+                        "resources": ["1 backend dev", "1 frontend dev"],
+                        "budget": 15000,
+                        "dependencies": []
+                    }}
+                ],
+                "totalDuration": "3-4 months",
+                "totalBudget": 50000,
+                "criticalPath": [1, 2, 3]
+            }},
+            "budget": {{
+                "categories": [
+                    {{
+                        "category": "Development",
+                        "items": [
+                            {{"name": "Senior Backend Dev", "cost": 15000, "recurring": false}},
+                            {{"name": "Frontend Dev", "cost": 12000, "recurring": false}}
+                        ],
+                        "total": 27000
+                    }}
+                ],
+                "totalOneTime": 45000,
+                "totalMonthly": 5000,
+                "breakeven": {{"months": 8, "revenue": 50000}}
             }}
         }}
 
@@ -210,7 +245,7 @@ class IdeaAnalystAgent(BaseAgent):
             ],
             model="gpt-4o",  # Use GPT-4 for better analysis
             temperature=0.7,
-            max_tokens=2000,
+            max_tokens=4000,  # Increased for roadmap and budget
             json_mode=True
         )
 
@@ -225,11 +260,15 @@ class IdeaAnalystAgent(BaseAgent):
 
         # Prepare analysis JSONB
         analysis_data = {
-            metric: {
-                "reasoning": scores[metric]["reasoning"],
-                "evidence": scores[metric]["evidence"]
-            }
-            for metric in scores.keys()
+            **{
+                metric: {
+                    "reasoning": scores[metric]["reasoning"],
+                    "evidence": scores[metric]["evidence"]
+                }
+                for metric in scores.keys()
+            },
+            "roadmap": analysis.get("roadmap", {}),
+            "budget": analysis.get("budget", {})
         }
 
         # Create IdeaCreate schema
