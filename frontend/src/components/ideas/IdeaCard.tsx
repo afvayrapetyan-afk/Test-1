@@ -40,9 +40,9 @@ export default function IdeaCard({
 
       {/* Header */}
       <div className="mb-2">
-        <h3 className="text-base font-semibold mb-1 flex items-center gap-1">
+        <h3 className="text-sm sm:text-base font-semibold mb-1 flex items-center gap-1">
           <span>{idea.emoji}</span>
-          <span>{idea.title}</span>
+          <span className="break-words">{idea.title}</span>
         </h3>
         <div className="text-xs text-text-tertiary">
           {idea.source} • {idea.timeAgo}
@@ -77,7 +77,7 @@ export default function IdeaCard({
 
       {/* Financial Metrics */}
       <div className="bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20 border border-border rounded-md p-2 my-2">
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <FinancialMetric
             label="💵 Инвестиции"
             value={`$${idea.financial.investment / 1000}K`}

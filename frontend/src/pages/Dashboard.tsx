@@ -131,30 +131,30 @@ export default function Dashboard() {
               <div className="space-y-1 my-2">
                 {project.status === 'development' && project.progress && (
                   <>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-text-secondary">Backend</span>
-                      <div className="flex items-center gap-1">
-                        <div className="w-[200px] h-2 bg-border rounded-full overflow-hidden">
+                    <div className="flex items-center justify-between gap-2 text-sm">
+                      <span className="text-text-secondary whitespace-nowrap">Backend</span>
+                      <div className="flex items-center gap-1 flex-1 min-w-0">
+                        <div className="flex-1 h-2 bg-border rounded-full overflow-hidden">
                           <div
                             className="h-full bg-accent-green rounded-full"
                             style={{ width: `${project.progress.backend}%` }}
                           />
                         </div>
-                        <span className="font-semibold">
+                        <span className="font-semibold whitespace-nowrap text-xs sm:text-sm">
                           {project.progress.backend}%
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-text-secondary">Frontend</span>
-                      <div className="flex items-center gap-1">
-                        <div className="w-[200px] h-2 bg-border rounded-full overflow-hidden">
+                    <div className="flex items-center justify-between gap-2 text-sm">
+                      <span className="text-text-secondary whitespace-nowrap">Frontend</span>
+                      <div className="flex items-center gap-1 flex-1 min-w-0">
+                        <div className="flex-1 h-2 bg-border rounded-full overflow-hidden">
                           <div
                             className="h-full bg-accent-blue rounded-full"
                             style={{ width: `${project.progress.frontend}%` }}
                           />
                         </div>
-                        <span className="font-semibold">
+                        <span className="font-semibold whitespace-nowrap text-xs sm:text-sm">
                           {project.progress.frontend}%
                         </span>
                       </div>

@@ -14,22 +14,23 @@ export default function TopBar({ onCommandClick, onNotificationsClick, onProfile
 
   return (
     <div className="sticky top-0 z-50 bg-surface/90 backdrop-blur-md border-b border-border">
-      <div className="container mx-auto px-3 max-w-[1536px]">
-        <div className="flex items-center justify-between py-2">
+      <div className="container mx-auto px-2 sm:px-3 max-w-[1536px]">
+        <div className="flex items-center justify-between py-2 gap-2">
           {/* Logo */}
-          <div className="flex items-center gap-1">
-            <span className="text-2xl">🚀</span>
-            <span className="text-lg font-bold text-text-primary">
-              AI Portfolio Manager
+          <div className="flex items-center gap-1 min-w-0">
+            <span className="text-xl sm:text-2xl">🚀</span>
+            <span className="text-sm sm:text-lg font-bold text-text-primary truncate">
+              <span className="hidden sm:inline">AI Portfolio Manager</span>
+              <span className="sm:hidden">AI Portfolio</span>
             </span>
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             {/* Search Box */}
             <button
               onClick={openSearch}
-              className="flex items-center gap-2 bg-background border border-border rounded-md px-2 py-1 min-w-[300px] transition-smooth hover:border-accent-blue focus-within:border-accent-blue focus-within:shadow-[0_0_0_3px_rgba(59,130,246,0.1)]"
+              className="hidden md:flex items-center gap-2 bg-background border border-border rounded-md px-2 py-1 min-w-[200px] lg:min-w-[300px] transition-smooth hover:border-accent-blue focus-within:border-accent-blue focus-within:shadow-[0_0_0_3px_rgba(59,130,246,0.1)]"
             >
               <Search className="w-4 h-4 text-text-tertiary" />
               <span className="flex-1 text-left text-sm text-text-tertiary">
@@ -40,10 +41,19 @@ export default function TopBar({ onCommandClick, onNotificationsClick, onProfile
               </kbd>
             </button>
 
+            {/* Mobile Search Icon */}
+            <button
+              onClick={openSearch}
+              className="md:hidden w-8 h-8 sm:w-9 sm:h-9 rounded-md border border-border bg-surface flex items-center justify-center transition-smooth hover:-translate-y-0.5 hover:shadow-md"
+              title="Поиск"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+
             {/* Icon Buttons */}
             <button
               onClick={toggleTheme}
-              className="w-9 h-9 rounded-md border border-border bg-surface flex items-center justify-center transition-smooth hover:-translate-y-0.5 hover:shadow-md"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-md border border-border bg-surface flex items-center justify-center transition-smooth hover:-translate-y-0.5 hover:shadow-md"
               title="Toggle Dark Mode (⌘+D)"
             >
               {theme === 'dark' ? (
@@ -55,7 +65,7 @@ export default function TopBar({ onCommandClick, onNotificationsClick, onProfile
 
             <button
               onClick={onCommandClick}
-              className="w-9 h-9 rounded-md border border-border bg-surface flex items-center justify-center transition-smooth hover:-translate-y-0.5 hover:shadow-md"
+              className="hidden sm:flex w-9 h-9 rounded-md border border-border bg-surface items-center justify-center transition-smooth hover:-translate-y-0.5 hover:shadow-md"
               title="Command Palette (⌘+K)"
             >
               <Command className="w-4 h-4" />
@@ -63,7 +73,7 @@ export default function TopBar({ onCommandClick, onNotificationsClick, onProfile
 
             <button
               onClick={onNotificationsClick}
-              className="w-9 h-9 rounded-md border border-border bg-surface flex items-center justify-center transition-smooth hover:-translate-y-0.5 hover:shadow-md relative"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-md border border-border bg-surface flex items-center justify-center transition-smooth hover:-translate-y-0.5 hover:shadow-md relative"
               title="Уведомления"
             >
               <Bell className="w-4 h-4" />
@@ -74,7 +84,7 @@ export default function TopBar({ onCommandClick, onNotificationsClick, onProfile
 
             <button
               onClick={onProfileClick}
-              className="w-9 h-9 rounded-md border border-border bg-surface flex items-center justify-center transition-smooth hover:-translate-y-0.5 hover:shadow-md"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-md border border-border bg-surface flex items-center justify-center transition-smooth hover:-translate-y-0.5 hover:shadow-md"
               title="Профиль"
             >
               <User className="w-4 h-4" />

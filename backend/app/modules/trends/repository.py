@@ -65,7 +65,12 @@ class TrendRepository:
 
     def create(self, trend_data: TrendCreate) -> Trend:
         """Create new trend"""
-        trend = Trend(**trend_data.model_dump())
+        data = trend_data.model_dump()
+        # Map metadata -> extra_metadata for database column
+        if 'metadata' in data:
+            data['extra_metadata'] = data.pop('metadata')
+
+        trend = Trend(**data)
         self.db.add(trend)
         self.db.commit()
         self.db.refresh(trend)

@@ -190,16 +190,31 @@ class TrendScoutAgent(BaseAgent):
         subreddits = input_data.get("subreddits", ["SideProject", "startups"])
         limit = input_data.get("limit", 100)
 
+        num_ideas = max(limit // len(subreddits), 5)  # At least 5 ideas
+
         prompt = f"""
-        Generate {limit // len(subreddits)} trending business ideas that might be discussed
+        Generate exactly {num_ideas} trending business ideas that would be discussed
         on Reddit subreddits like {', '.join(subreddits)}.
 
-        Format as JSON array with objects containing:
-        - title: Short catchy title (max 100 chars)
-        - description: Brief description (max 500 chars)
-        - category: One of (productivity, saas, marketplace, ai, fintech, health, education)
-        - tags: Array of 3-5 relevant tags
-        - engagement_score: Estimated engagement (100-2000)
+        Return a JSON object with a "trends" array. Each trend must have:
+        - title: string (max 100 chars)
+        - description: string (max 500 chars)
+        - category: string (one of: productivity, saas, marketplace, ai, fintech, health, education)
+        - tags: array of strings (3-5 tags)
+        - engagement_score: integer (100-2000)
+
+        Example format:
+        {{
+          "trends": [
+            {{
+              "title": "AI Code Review Assistant",
+              "description": "Automated code review tool using GPT-4",
+              "category": "ai",
+              "tags": ["AI", "development", "automation"],
+              "engagement_score": 1250
+            }}
+          ]
+        }}
 
         Focus on:
         - AI/ML applications
@@ -207,6 +222,8 @@ class TrendScoutAgent(BaseAgent):
         - No-code tools
         - Developer tools
         - Side project ideas
+
+        Generate exactly {num_ideas} trends in the "trends" array.
         """
 
         response = self.call_llm(
@@ -222,8 +239,11 @@ class TrendScoutAgent(BaseAgent):
         import json
         trends_data = json.loads(response["content"])
 
+        # Handle different response formats
+        trend_list = trends_data if isinstance(trends_data, list) else trends_data.get("trends", trends_data.get("items", []))
+
         trends = []
-        for trend in trends_data.get("trends", [])[:limit]:
+        for trend in trend_list[:limit]:
             trends.append(
                 TrendCreate(
                     title=trend["title"],
@@ -282,8 +302,11 @@ class TrendScoutAgent(BaseAgent):
         import json
         trends_data = json.loads(response["content"])
 
+        # Handle different response formats
+        trend_list = trends_data if isinstance(trends_data, list) else trends_data.get("trends", trends_data.get("items", []))
+
         trends = []
-        for trend in trends_data.get("trends", [])[:limit]:
+        for trend in trend_list[:limit]:
             trends.append(
                 TrendCreate(
                     title=trend["title"],
