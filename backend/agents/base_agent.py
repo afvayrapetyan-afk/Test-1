@@ -3,8 +3,14 @@ Base Agent - базовый класс для всех AI агентов с до
 """
 from typing import Dict, List, Optional
 from services.github_service import GitHubService
-from services.code_indexer import CodeIndexer
 import ast
+
+# CodeIndexer is optional
+try:
+    from services.code_indexer import CodeIndexer
+    INDEXER_AVAILABLE = True
+except ImportError:
+    INDEXER_AVAILABLE = False
 
 
 class BaseAgent:
@@ -19,7 +25,7 @@ class BaseAgent:
         """
         self.name = name
         self.github = GitHubService()
-        self.indexer = CodeIndexer()
+        self.indexer = CodeIndexer() if INDEXER_AVAILABLE else None
 
     def read_file(self, path: str, branch: str = "main") -> str:
         """
@@ -52,6 +58,8 @@ class BaseAgent:
         """
         if semantic:
             # Семантический поиск через embeddings
+            if self.indexer is None:
+                raise Exception("Semantic search requires qdrant-client. Use semantic=False for GitHub text search.")
             return self.indexer.semantic_search(query, top_k=max_results)
         else:
             # Текстовый поиск через GitHub API
