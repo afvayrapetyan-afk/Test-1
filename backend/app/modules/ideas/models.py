@@ -2,8 +2,7 @@
 SQLAlchemy Models for Ideas
 """
 
-from sqlalchemy import Column, Integer, String, Text, TIMESTAMP, ForeignKey, CheckConstraint
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import Column, Integer, String, Text, TIMESTAMP, ForeignKey, CheckConstraint, JSON
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
@@ -74,7 +73,7 @@ class Idea(Base):
         return sum(scores) // 6 if any(scores) else 0
 
     # Analysis details
-    analysis = Column(JSONB, default={})  # Full LLM analysis with reasoning
+    analysis = Column(JSON, default=dict)  # Full LLM analysis with reasoning
 
     # Timestamps
     analyzed_at = Column(TIMESTAMP, default=datetime.utcnow, index=True)

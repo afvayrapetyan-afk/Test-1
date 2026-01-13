@@ -3,7 +3,7 @@ Ideas Service - Business Logic Layer
 """
 
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List, Optional, Union
 import structlog
 
 from app.modules.ideas.repository import IdeaRepository
@@ -55,7 +55,7 @@ class IdeaService:
             has_more=has_more
         )
 
-    def get_idea(self, idea_id: int, detailed: bool = False) -> Optional[IdeaOut | IdeaDetailedOut]:
+    def get_idea(self, idea_id: int, detailed: bool = False) -> Optional[Union[IdeaOut, IdeaDetailedOut]]:
         """Get single idea by ID"""
         idea = self.repository.get_by_id(idea_id)
         if not idea:

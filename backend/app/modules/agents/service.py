@@ -3,7 +3,7 @@ Agent Executions Service - Business Logic Layer
 """
 
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Optional, Union
 import structlog
 
 from app.modules.agents.repository import AgentExecutionRepository
@@ -53,7 +53,7 @@ class AgentExecutionService:
             has_more=has_more
         )
 
-    def get_execution(self, execution_id: int, detailed: bool = False) -> Optional[AgentExecutionOut | AgentExecutionDetailedOut]:
+    def get_execution(self, execution_id: int, detailed: bool = False) -> Optional[Union[AgentExecutionOut, AgentExecutionDetailedOut]]:
         """Get single agent execution by ID"""
         execution = self.repository.get_by_id(execution_id)
         if not execution:

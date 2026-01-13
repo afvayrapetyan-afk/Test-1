@@ -47,13 +47,14 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
     # CORS
-    CORS_ORIGINS: List[str] = ["http://localhost:5173", "http://localhost:3000"]
+    CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
 
-    @validator("CORS_ORIGINS", pre=True)
-    def parse_cors_origins(cls, v):
-        if isinstance(v, str):
-            return [origin.strip() for origin in v.split(",")]
-        return v
+    @property
+    def cors_origins_list(self) -> List[str]:
+        """Parse CORS_ORIGINS string into list"""
+        if isinstance(self.CORS_ORIGINS, str):
+            return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
+        return self.CORS_ORIGINS
 
     # Celery (Optional для быстрого старта)
     CELERY_BROKER_URL: str = "redis://localhost:6379/0"
@@ -75,10 +76,12 @@ class Settings(BaseSettings):
     ENABLE_BATCH_EMBEDDINGS: bool = True
     ENABLE_PROMPT_CACHING: bool = True
 
-    # Data Sources
+    # Data Sources (все опциональные)
     REDDIT_CLIENT_ID: str = ""
     REDDIT_CLIENT_SECRET: str = ""
     REDDIT_USER_AGENT: str = "BusinessPortfolioBot/1.0"
+    REDDIT_USERNAME: str = ""
+    REDDIT_PASSWORD: str = ""
 
     TELEGRAM_BOT_TOKEN: str = ""
     TELEGRAM_API_ID: str = ""
@@ -100,6 +103,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "ignore"  # Ignore extra fields from .env that aren't defined in Settings
 
 
 # Global settings instance

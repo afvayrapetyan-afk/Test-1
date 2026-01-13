@@ -2,8 +2,7 @@
 SQLAlchemy Models for Trends
 """
 
-from sqlalchemy import Column, Integer, String, Text, Float, TIMESTAMP, ARRAY, func
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import Column, Integer, String, Text, Float, TIMESTAMP, JSON, func
 from datetime import datetime
 
 from app.core.database import Base
@@ -26,7 +25,7 @@ class Trend(Base):
     # Metadata
     source = Column(String(50), nullable=False, index=True)  # reddit, google_trends, etc.
     category = Column(String(50), nullable=True, index=True)
-    tags = Column(ARRAY(Text), default=[])
+    tags = Column(JSON, default=list)  # JSON compatible with both SQLite and PostgreSQL
 
     # Metrics
     engagement_score = Column(Integer, default=0, index=True)
@@ -36,7 +35,7 @@ class Trend(Base):
     discovered_at = Column(TIMESTAMP, default=datetime.utcnow, index=True)
 
     # Flexible metadata (source-specific data)
-    metadata = Column(JSONB, default={})
+    extra_metadata = Column(JSON, default=dict)  # JSON compatible with both SQLite and PostgreSQL
 
     def __repr__(self):
         return f"<Trend(id={self.id}, title='{self.title[:30]}...', source={self.source})>"
@@ -54,5 +53,5 @@ class Trend(Base):
             "engagement_score": self.engagement_score,
             "velocity": self.velocity,
             "discovered_at": self.discovered_at.isoformat() if self.discovered_at else None,
-            "metadata": self.metadata or {}
+            "metadata": self.extra_metadata or {}
         }

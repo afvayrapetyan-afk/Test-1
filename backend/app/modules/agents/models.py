@@ -2,8 +2,7 @@
 SQLAlchemy Models for Agent Executions
 """
 
-from sqlalchemy import Column, Integer, String, Text, TIMESTAMP, DECIMAL
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import Column, Integer, String, Text, TIMESTAMP, DECIMAL, JSON
 from datetime import datetime
 
 from app.core.database import Base
@@ -22,8 +21,8 @@ class AgentExecution(Base):
     agent_type = Column(String(50), nullable=False, index=True)  # trend_scout, idea_analyst, etc.
 
     # Execution data
-    input_data = Column(JSONB, default={})
-    output_data = Column(JSONB, default={})
+    input_data = Column(JSON, default=dict)
+    output_data = Column(JSON, default=dict)
 
     # Status tracking
     status = Column(
@@ -43,7 +42,7 @@ class AgentExecution(Base):
     llm_cost_usd = Column(DECIMAL(10, 4), default=0.0)
 
     # Additional metadata
-    metadata = Column(JSONB, default={})
+    extra_metadata = Column(JSON, default=dict)
 
     def __repr__(self):
         return f"<AgentExecution(id={self.id}, agent={self.agent_type}, status={self.status})>"
@@ -68,6 +67,6 @@ class AgentExecution(Base):
         base_dict.update({
             "input_data": self.input_data or {},
             "output_data": self.output_data or {},
-            "metadata": self.metadata or {}
+            "metadata": self.extra_metadata or {}
         })
         return base_dict

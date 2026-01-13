@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 import structlog
 
 from app.core.config import settings
-from app.core.database import engine
+from app.core.database import engine, init_db
 from app.modules.trends import router as trends_router
 from app.modules.ideas import router as ideas_router
 from app.modules.agents import router as agents_router
@@ -28,7 +28,7 @@ app = FastAPI(
 # CORS Configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -110,8 +110,9 @@ async def startup_event():
     """
     logger.info("Starting AI Business Portfolio Manager API", version="0.1.0")
 
-    # Database initialization would go here
-    # await init_db()
+    # Database initialization
+    init_db()
+    logger.info("Database tables initialized")
 
 
 # Shutdown Event
