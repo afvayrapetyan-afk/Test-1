@@ -4,44 +4,59 @@ __pycache__/
 *$py.class
 *.so
 .Python
-venv/
 env/
+venv/
 ENV/
-.venv
-
-# Node
-node_modules/
+*.egg-info/
 dist/
-.next/
-.nuxt/
-npm-debug.log*
+build/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
 
 # Environment
 .env
 .env.local
-.env.production
+.env.*.local
 
-# IDEs
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Databases
-*.db
-*.sqlite
-
-# Logs
-*.log
-logs/
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 
 # Build
+dist/
 build/
-.cache/
+*.tsbuildinfo
 
-# n8n-mcp (separate git repository)
+# Logs
+logs/
+*.log
+celery.log
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# n8n MCP
 n8n-mcp/

@@ -1,11 +1,76 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
-import { mockIdeas } from '../data/mockData'
+import { useState, useEffect } from 'react'
+import { API_ENDPOINTS } from '../config/api'
+
+interface IdeaDetail {
+  id: number
+  title: string
+  description: string
+  trend_id: number
+  total_score: number
+  scores: {
+    market_size: { score: number; reasoning: string; evidence: string }
+    competition: { score: number; reasoning: string; evidence: string }
+    demand: { score: number; reasoning: string; evidence: string }
+    monetization: { score: number; reasoning: string; evidence: string }
+    feasibility: { score: number; reasoning: string; evidence: string }
+    time_to_market: { score: number; reasoning: string; evidence: string }
+  }
+  status: string
+  analyzed_at: string
+}
 
 export default function IdeaDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const idea = mockIdeas.find((i) => i.id === id) || mockIdeas[0]
+  const [idea, setIdea] = useState<IdeaDetail | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchIdea = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch(`${API_ENDPOINTS.ideas.get(Number(id))}`)
+        if (!response.ok) {
+          throw new Error('Идея не найдена')
+        }
+        const data = await response.json()
+        setIdea(data)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Ошибка загрузки')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (id) {
+      fetchIdea()
+    }
+  }, [id])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-text-secondary">Загрузка...</div>
+      </div>
+    )
+  }
+
+  if (error || !idea) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="text-red-500 mb-4">{error || 'Идея не найдена'}</div>
+        <button
+          onClick={() => navigate('/')}
+          className="text-accent-blue hover:underline"
+        >
+          Вернуться назад
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -23,36 +88,36 @@ export default function IdeaDetail() {
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <h1 className="text-4xl font-bold mb-4">
-              {idea.emoji} {idea.title}
+              💡 {idea.title}
             </h1>
             <p className="text-blue-100 text-lg mb-6">
-              AI-powered персонализированное питание с доставкой на дом
+              {idea.description}
             </p>
-            <div className="flex gap-4">
+            <div className="flex gap-2 flex-wrap">
               <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
-                <div className="text-sm text-blue-100">Инвестиции</div>
-                <div className="text-2xl font-bold">
-                  ${idea.financial.investment / 1000}K
+                <div className="text-sm text-blue-100">Статус</div>
+                <div className="text-lg font-bold capitalize">
+                  {idea.status === 'pending' ? 'К реализации' : idea.status}
                 </div>
               </div>
               <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
-                <div className="text-sm text-blue-100">Окупаемость</div>
-                <div className="text-2xl font-bold">
-                  {idea.financial.paybackMonths} мес
+                <div className="text-sm text-blue-100">Trend ID</div>
+                <div className="text-lg font-bold">
+                  #{idea.trend_id}
                 </div>
               </div>
               <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
-                <div className="text-sm text-blue-100">Маржа</div>
-                <div className="text-2xl font-bold">
-                  {idea.financial.margin}%
+                <div className="text-sm text-blue-100">Дата анализа</div>
+                <div className="text-lg font-bold">
+                  {new Date(idea.analyzed_at).toLocaleDateString('ru-RU')}
                 </div>
               </div>
             </div>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-2xl px-6 py-4 text-center">
-            <div className="text-sm text-blue-100 mb-2">Общий Score</div>
-            <div className="text-5xl font-bold">{idea.score}</div>
-            <div className="text-sm text-blue-100">/10</div>
+            <div className="text-sm text-blue-100 mb-2">AI Score</div>
+            <div className="text-5xl font-bold">{idea.total_score}</div>
+            <div className="text-sm text-blue-100">/100</div>
           </div>
         </div>
       </div>
@@ -60,228 +125,174 @@ export default function IdeaDetail() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Executive Summary */}
+          {/* AI Analysis - Detailed Metrics */}
           <section className="bg-surface border border-border rounded-xl p-6">
             <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-              📊 Executive Summary
+              🤖 AI-анализ метрик
+            </h2>
+            <div className="space-y-6">
+              {/* Market Size */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-text-primary">Размер рынка</h3>
+                  <span className="text-2xl font-bold text-accent-blue">{idea.scores.market_size.score}/100</span>
+                </div>
+                <div className="bg-blue-50 dark:bg-blue-950/20 border-l-4 border-blue-500 p-4 rounded space-y-2">
+                  <p className="text-sm text-text-secondary">
+                    <strong className="text-text-primary">Анализ:</strong> {idea.scores.market_size.reasoning}
+                  </p>
+                  <p className="text-sm text-text-tertiary italic">
+                    <strong>Факты:</strong> {idea.scores.market_size.evidence}
+                  </p>
+                </div>
+              </div>
+
+              {/* Competition */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-text-primary">Конкурентная среда</h3>
+                  <span className="text-2xl font-bold text-accent-orange">{idea.scores.competition.score}/100</span>
+                </div>
+                <div className="bg-orange-50 dark:bg-orange-950/20 border-l-4 border-orange-500 p-4 rounded space-y-2">
+                  <p className="text-sm text-text-secondary">
+                    <strong className="text-text-primary">Анализ:</strong> {idea.scores.competition.reasoning}
+                  </p>
+                  <p className="text-sm text-text-tertiary italic">
+                    <strong>Факты:</strong> {idea.scores.competition.evidence}
+                  </p>
+                </div>
+              </div>
+
+              {/* Demand */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-text-primary">Спрос и актуальность</h3>
+                  <span className="text-2xl font-bold text-accent-green">{idea.scores.demand.score}/100</span>
+                </div>
+                <div className="bg-green-50 dark:bg-green-950/20 border-l-4 border-green-500 p-4 rounded space-y-2">
+                  <p className="text-sm text-text-secondary">
+                    <strong className="text-text-primary">Анализ:</strong> {idea.scores.demand.reasoning}
+                  </p>
+                  <p className="text-sm text-text-tertiary italic">
+                    <strong>Факты:</strong> {idea.scores.demand.evidence}
+                  </p>
+                </div>
+              </div>
+
+              {/* Monetization */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-text-primary">Монетизация</h3>
+                  <span className="text-2xl font-bold text-accent-purple">{idea.scores.monetization.score}/100</span>
+                </div>
+                <div className="bg-purple-50 dark:bg-purple-950/20 border-l-4 border-purple-500 p-4 rounded space-y-2">
+                  <p className="text-sm text-text-secondary">
+                    <strong className="text-text-primary">Анализ:</strong> {idea.scores.monetization.reasoning}
+                  </p>
+                  <p className="text-sm text-text-tertiary italic">
+                    <strong>Факты:</strong> {idea.scores.monetization.evidence}
+                  </p>
+                </div>
+              </div>
+
+              {/* Feasibility */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-text-primary">Реализуемость</h3>
+                  <span className="text-2xl font-bold text-accent-blue">{idea.scores.feasibility.score}/100</span>
+                </div>
+                <div className="bg-blue-50 dark:bg-blue-950/20 border-l-4 border-blue-500 p-4 rounded space-y-2">
+                  <p className="text-sm text-text-secondary">
+                    <strong className="text-text-primary">Анализ:</strong> {idea.scores.feasibility.reasoning}
+                  </p>
+                  <p className="text-sm text-text-tertiary italic">
+                    <strong>Факты:</strong> {idea.scores.feasibility.evidence}
+                  </p>
+                </div>
+              </div>
+
+              {/* Time to Market */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-text-primary">Скорость выхода на рынок</h3>
+                  <span className="text-2xl font-bold text-accent-green">{idea.scores.time_to_market.score}/100</span>
+                </div>
+                <div className="bg-green-50 dark:bg-green-950/20 border-l-4 border-green-500 p-4 rounded space-y-2">
+                  <p className="text-sm text-text-secondary">
+                    <strong className="text-text-primary">Анализ:</strong> {idea.scores.time_to_market.reasoning}
+                  </p>
+                  <p className="text-sm text-text-tertiary italic">
+                    <strong>Факты:</strong> {idea.scores.time_to_market.evidence}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Summary Section */}
+          <section className="bg-surface border border-border rounded-xl p-6">
+            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              📝 Резюме
             </h2>
             <div className="space-y-4 text-text-secondary">
-              <p>
-                AI Personal Chef — это инновационный сервис персонализированного
-                питания, использующий искусственный интеллект для создания
-                индивидуальных планов питания и автоматической доставки
-                ингредиентов.
+              <p className="text-base leading-relaxed">
+                {idea.description}
               </p>
-              <div className="bg-blue-50 dark:bg-blue-950/20 border-l-4 border-blue-500 p-4 rounded">
-                <h3 className="font-semibold text-text-primary mb-2">
-                  Ключевая ценность
-                </h3>
-                <p>
-                  Экономия 10+ часов в неделю на планирование питания и покупки
-                  + улучшение здоровья через персонализированное питание
-                </p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-text-primary mb-2">
-                  Целевая аудитория
-                </h3>
-                <ul className="list-disc list-inside space-y-1">
-                  <li>Молодые профессионалы 25-40 лет</li>
-                  <li>Семьи с детьми</li>
-                  <li>Люди с особыми диетическими потребностями</li>
-                  <li>Фитнес-энтузиасты</li>
-                </ul>
-              </div>
-            </div>
-          </section>
+              <div className="grid grid-cols-2 gap-4 mt-6">
+                <div className="bg-blue-50 dark:bg-blue-950/20 border-l-4 border-blue-500 p-4 rounded">
+                  <h3 className="font-semibold text-text-primary mb-2">
+                    ✅ Сильные стороны
+                  </h3>
+                  <ul className="text-sm space-y-1">
+                    {(() => {
+                      const metrics = [
+                        { name: 'Крупный рынок', score: idea.scores.market_size.score, threshold: 75 },
+                        { name: 'Высокий спрос', score: idea.scores.demand.score, threshold: 75 },
+                        { name: 'Низкая конкуренция', score: 100 - idea.scores.competition.score, threshold: 30 },
+                        { name: 'Потенциал монетизации', score: idea.scores.monetization.score, threshold: 70 },
+                        { name: 'Легкая реализация', score: idea.scores.feasibility.score, threshold: 70 },
+                        { name: 'Быстрый выход на рынок', score: idea.scores.time_to_market.score, threshold: 70 },
+                      ]
+                      const strengths = metrics
+                        .filter(m => m.score >= m.threshold)
+                        .sort((a, b) => b.score - a.score)
+                        .slice(0, 4)
 
-          {/* Market Analysis */}
-          <section className="bg-surface border border-border rounded-xl p-6">
-            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-              🌍 Анализ рынка
-            </h2>
-            <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="bg-background rounded-lg p-4 text-center">
-                  <div className="text-sm text-text-secondary mb-1">TAM</div>
-                  <div className="text-2xl font-bold text-accent-blue">$52B</div>
-                  <div className="text-xs text-text-tertiary">Total Market</div>
+                      return strengths.length > 0 ? (
+                        strengths.map((s, i) => <li key={i}>• {s.name}</li>)
+                      ) : (
+                        <li className="text-text-tertiary italic">Нет явных преимуществ</li>
+                      )
+                    })()}
+                  </ul>
                 </div>
-                <div className="bg-background rounded-lg p-4 text-center">
-                  <div className="text-sm text-text-secondary mb-1">SAM</div>
-                  <div className="text-2xl font-bold text-accent-green">$8B</div>
-                  <div className="text-xs text-text-tertiary">Serviceable</div>
+                <div className="bg-orange-50 dark:bg-orange-950/20 border-l-4 border-orange-500 p-4 rounded">
+                  <h3 className="font-semibold text-text-primary mb-2">
+                    ⚠️ Основные вызовы
+                  </h3>
+                  <ul className="text-sm space-y-1">
+                    {(() => {
+                      const challenges = [
+                        { name: 'Конкурентная среда', score: idea.scores.competition.score, reason: idea.scores.competition.reasoning },
+                        { name: 'Реализуемость', score: idea.scores.feasibility.score, reason: idea.scores.feasibility.reasoning },
+                        { name: 'Размер рынка', score: idea.scores.market_size.score, reason: idea.scores.market_size.reasoning },
+                        { name: 'Спрос', score: idea.scores.demand.score, reason: idea.scores.demand.reasoning },
+                        { name: 'Монетизация', score: idea.scores.monetization.score, reason: idea.scores.monetization.reasoning },
+                        { name: 'Время на рынок', score: idea.scores.time_to_market.score, reason: idea.scores.time_to_market.reasoning },
+                      ]
+                      // Сортируем по возрастанию score (самые слабые первыми)
+                      const weakest = challenges
+                        .sort((a, b) => a.score - b.score)
+                        .slice(0, 4)
+
+                      return weakest.map((c, i) => (
+                        <li key={i} className="leading-relaxed">
+                          • <strong>{c.name}</strong> ({c.score}/100): {c.reason.split('.')[0]}.
+                        </li>
+                      ))
+                    })()}
+                  </ul>
                 </div>
-                <div className="bg-background rounded-lg p-4 text-center">
-                  <div className="text-sm text-text-secondary mb-1">SOM</div>
-                  <div className="text-2xl font-bold text-accent-orange">$400M</div>
-                  <div className="text-xs text-text-tertiary">Obtainable</div>
-                </div>
-              </div>
-              <div className="bg-green-50 dark:bg-green-950/20 border-l-4 border-green-500 p-4 rounded">
-                <h3 className="font-semibold text-text-primary mb-2">
-                  Темп роста
-                </h3>
-                <p className="text-text-secondary">
-                  Рынок персонализированного питания растет на{' '}
-                  <span className="font-bold text-green-600">+23% CAGR</span>{' '}
-                  (2024-2029)
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Competitors */}
-          <section className="bg-surface border border-border rounded-xl p-6">
-            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-              🏪 Конкуренты
-            </h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-2 font-semibold">Компания</th>
-                    <th className="text-left py-2 font-semibold">Доля рынка</th>
-                    <th className="text-left py-2 font-semibold">Слабости</th>
-                  </tr>
-                </thead>
-                <tbody className="text-text-secondary">
-                  <tr className="border-b border-border">
-                    <td className="py-3">HelloFresh</td>
-                    <td className="py-3">24%</td>
-                    <td className="py-3">Нет AI, стандартные рецепты</td>
-                  </tr>
-                  <tr className="border-b border-border">
-                    <td className="py-3">Blue Apron</td>
-                    <td className="py-3">8%</td>
-                    <td className="py-3">Высокая цена, нет персонализации</td>
-                  </tr>
-                  <tr className="border-b border-border">
-                    <td className="py-3">Factor</td>
-                    <td className="py-3">5%</td>
-                    <td className="py-3">Только готовые блюда</td>
-                  </tr>
-                  <tr>
-                    <td className="py-3">Sunbasket</td>
-                    <td className="py-3">4%</td>
-                    <td className="py-3">Ограниченный ассортимент</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          {/* Strategy */}
-          <section className="bg-surface border border-border rounded-xl p-6">
-            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-              🎯 Стратегия запуска
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold text-text-primary mb-2">
-                  Фаза 1: MVP (Месяцы 1-3)
-                </h3>
-                <ul className="list-disc list-inside text-text-secondary space-y-1">
-                  <li>Запуск в одном городе (SF Bay Area)</li>
-                  <li>AI модель на базе GPT-4 для планирования меню</li>
-                  <li>Партнерство с 3-5 локальными поставщиками</li>
-                  <li>Целевая метрика: 100 платящих клиентов</li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-semibold text-text-primary mb-2">
-                  Фаза 2: Масштабирование (Месяцы 4-12)
-                </h3>
-                <ul className="list-disc list-inside text-text-secondary space-y-1">
-                  <li>Расширение на 5 крупных городов</li>
-                  <li>Мобильное приложение (iOS + Android)</li>
-                  <li>Интеграция с фитнес-трекерами</li>
-                  <li>Целевая метрика: 2,000 клиентов, $50K MRR</li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          {/* Financials */}
-          <section className="bg-surface border border-border rounded-xl p-6">
-            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-              💰 Финансовый прогноз
-            </h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-2 font-semibold">Метрика</th>
-                    <th className="text-right py-2 font-semibold">Год 1</th>
-                    <th className="text-right py-2 font-semibold">Год 2</th>
-                    <th className="text-right py-2 font-semibold">Год 3</th>
-                  </tr>
-                </thead>
-                <tbody className="text-text-secondary">
-                  <tr className="border-b border-border">
-                    <td className="py-3">Выручка</td>
-                    <td className="py-3 text-right font-semibold">$180K</td>
-                    <td className="py-3 text-right font-semibold">$850K</td>
-                    <td className="py-3 text-right font-semibold">$2.4M</td>
-                  </tr>
-                  <tr className="border-b border-border">
-                    <td className="py-3">Валовая маржа</td>
-                    <td className="py-3 text-right">65%</td>
-                    <td className="py-3 text-right">68%</td>
-                    <td className="py-3 text-right">70%</td>
-                  </tr>
-                  <tr className="border-b border-border">
-                    <td className="py-3">Операционные расходы</td>
-                    <td className="py-3 text-right">$120K</td>
-                    <td className="py-3 text-right">$400K</td>
-                    <td className="py-3 text-right">$950K</td>
-                  </tr>
-                  <tr>
-                    <td className="py-3 font-semibold">Чистая прибыль</td>
-                    <td className="py-3 text-right font-semibold text-red-500">
-                      -$3K
-                    </td>
-                    <td className="py-3 text-right font-semibold text-green-500">
-                      +$178K
-                    </td>
-                    <td className="py-3 text-right font-semibold text-green-500">
-                      +$730K
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          {/* Risks */}
-          <section className="bg-surface border border-border rounded-xl p-6">
-            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-              ⚠️ Риски и митигация
-            </h2>
-            <div className="space-y-3">
-              <div className="bg-red-50 dark:bg-red-950/20 border-l-4 border-red-500 p-4 rounded">
-                <h3 className="font-semibold text-text-primary mb-2">
-                  🔴 Высокий: Конкуренция с крупными игроками
-                </h3>
-                <p className="text-text-secondary text-sm mb-2">
-                  HelloFresh и другие могут добавить AI функции
-                </p>
-                <p className="text-text-secondary text-sm">
-                  <strong>Митигация:</strong> Фокус на superior AI, быстрая
-                  итерация, патенты на алгоритмы
-                </p>
-              </div>
-              <div className="bg-orange-50 dark:bg-orange-950/20 border-l-4 border-orange-500 p-4 rounded">
-                <h3 className="font-semibold text-text-primary mb-2">
-                  🟠 Средний: Unit economics
-                </h3>
-                <p className="text-text-secondary text-sm mb-2">
-                  Высокие затраты на доставку могут убить маржу
-                </p>
-                <p className="text-text-secondary text-sm">
-                  <strong>Митигация:</strong> Оптимизация маршрутов, партнерство
-                  с DoorDash, минимальный заказ $50
-                </p>
               </div>
             </div>
           </section>
@@ -291,7 +302,7 @@ export default function IdeaDetail() {
         <div className="space-y-6">
           {/* Quick Stats */}
           <div className="bg-surface border border-border rounded-xl p-6">
-            <h3 className="font-bold mb-4">Ключевые метрики</h3>
+            <h3 className="font-bold mb-4">Сводка по метрикам</h3>
             <div className="space-y-3">
               <div>
                 <div className="text-sm text-text-secondary">Размер рынка</div>
@@ -299,11 +310,11 @@ export default function IdeaDetail() {
                   <div className="flex-1 h-2 bg-border rounded-full overflow-hidden">
                     <div
                       className="h-full bg-accent-blue rounded-full"
-                      style={{ width: `${idea.metrics.marketSize * 10}%` }}
+                      style={{ width: `${idea.scores.market_size.score}%` }}
                     />
                   </div>
                   <span className="text-sm font-semibold">
-                    {idea.metrics.marketSize}/10
+                    {idea.scores.market_size.score}/100
                   </span>
                 </div>
               </div>
@@ -313,11 +324,11 @@ export default function IdeaDetail() {
                   <div className="flex-1 h-2 bg-border rounded-full overflow-hidden">
                     <div
                       className="h-full bg-accent-orange rounded-full"
-                      style={{ width: `${idea.metrics.competition * 10}%` }}
+                      style={{ width: `${idea.scores.competition.score}%` }}
                     />
                   </div>
                   <span className="text-sm font-semibold">
-                    {idea.metrics.competition}/10
+                    {idea.scores.competition.score}/100
                   </span>
                 </div>
               </div>
@@ -327,11 +338,11 @@ export default function IdeaDetail() {
                   <div className="flex-1 h-2 bg-border rounded-full overflow-hidden">
                     <div
                       className="h-full bg-accent-green rounded-full"
-                      style={{ width: `${idea.metrics.demand * 10}%` }}
+                      style={{ width: `${idea.scores.demand.score}%` }}
                     />
                   </div>
                   <span className="text-sm font-semibold">
-                    {idea.metrics.demand}/10
+                    {idea.scores.demand.score}/100
                   </span>
                 </div>
               </div>
@@ -341,71 +352,83 @@ export default function IdeaDetail() {
                   <div className="flex-1 h-2 bg-border rounded-full overflow-hidden">
                     <div
                       className="h-full bg-accent-purple rounded-full"
-                      style={{ width: `${idea.metrics.monetization * 10}%` }}
+                      style={{ width: `${idea.scores.monetization.score}%` }}
                     />
                   </div>
                   <span className="text-sm font-semibold">
-                    {idea.metrics.monetization}/10
+                    {idea.scores.monetization.score}/100
+                  </span>
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-text-secondary">Реализуемость</div>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-2 bg-border rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-accent-blue rounded-full"
+                      style={{ width: `${idea.scores.feasibility.score}%` }}
+                    />
+                  </div>
+                  <span className="text-sm font-semibold">
+                    {idea.scores.feasibility.score}/100
+                  </span>
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-text-secondary">Выход на рынок</div>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-2 bg-border rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-accent-green rounded-full"
+                      style={{ width: `${idea.scores.time_to_market.score}%` }}
+                    />
+                  </div>
+                  <span className="text-sm font-semibold">
+                    {idea.scores.time_to_market.score}/100
                   </span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Roadmap */}
+          {/* AI Confidence */}
           <div className="bg-surface border border-border rounded-xl p-6">
-            <h3 className="font-bold mb-4">🗺️ Roadmap</h3>
+            <h3 className="font-bold mb-4">🎯 Уверенность AI</h3>
             <div className="space-y-4">
-              <div className="relative pl-6 border-l-2 border-accent-blue pb-4">
-                <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-accent-blue" />
-                <div className="text-sm font-semibold">Q1 2024</div>
-                <div className="text-sm text-text-secondary">MVP Launch</div>
-              </div>
-              <div className="relative pl-6 border-l-2 border-border pb-4">
-                <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-border" />
-                <div className="text-sm font-semibold">Q2 2024</div>
-                <div className="text-sm text-text-secondary">
-                  Mobile App + 5 cities
+              <div>
+                <div className="text-sm text-text-secondary mb-2">Общая оценка</div>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-3 bg-border rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full"
+                      style={{ width: `${idea.total_score}%` }}
+                    />
+                  </div>
+                  <span className="text-lg font-bold">{idea.total_score}%</span>
                 </div>
               </div>
-              <div className="relative pl-6 border-l-2 border-border pb-4">
-                <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-border" />
-                <div className="text-sm font-semibold">Q3 2024</div>
-                <div className="text-sm text-text-secondary">
-                  Series A + 20 cities
-                </div>
-              </div>
-              <div className="relative pl-6">
-                <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-border" />
-                <div className="text-sm font-semibold">Q4 2024</div>
-                <div className="text-sm text-text-secondary">
-                  National expansion
-                </div>
-              </div>
-            </div>
-          </div>
 
-          {/* Team */}
-          <div className="bg-surface border border-border rounded-xl p-6">
-            <h3 className="font-bold mb-4">👥 Команда</h3>
-            <div className="space-y-3 text-sm">
-              <div>
-                <div className="font-semibold">CEO / Tech Lead</div>
-                <div className="text-text-secondary">
-                  ex-Google AI, Stanford CS
-                </div>
-              </div>
-              <div>
-                <div className="font-semibold">COO / Logistics</div>
-                <div className="text-text-secondary">
-                  ex-DoorDash Operations
-                </div>
-              </div>
-              <div>
-                <div className="font-semibold">Hiring</div>
-                <div className="text-text-secondary">
-                  Lead Chef, Marketing Head
-                </div>
+              <div className="pt-4 border-t border-border">
+                <div className="text-sm font-semibold text-text-primary mb-3">Рекомендация:</div>
+                {idea.total_score >= 75 ? (
+                  <div className="bg-green-50 dark:bg-green-950/20 border-l-4 border-green-500 p-3 rounded">
+                    <p className="text-sm text-text-secondary">
+                      ✅ <strong>Рекомендуется к реализации.</strong> Идея показывает высокий потенциал по большинству метрик.
+                    </p>
+                  </div>
+                ) : idea.total_score >= 60 ? (
+                  <div className="bg-yellow-50 dark:bg-yellow-950/20 border-l-4 border-yellow-500 p-3 rounded">
+                    <p className="text-sm text-text-secondary">
+                      ⚠️ <strong>Требует доработки.</strong> Некоторые метрики нуждаются в улучшении перед запуском.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-red-50 dark:bg-red-950/20 border-l-4 border-red-500 p-3 rounded">
+                    <p className="text-sm text-text-secondary">
+                      ❌ <strong>Не рекомендуется.</strong> Идея имеет существенные недостатки.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
