@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, TrendingUp, Clock } from 'lucide-react'
+import { Search, TrendingUp, Clock, X } from 'lucide-react'
 import { useSearch } from '../../contexts/SearchContext'
 import { mockIdeas } from '../../data/mockData'
 import { useNavigate } from 'react-router-dom'
@@ -76,6 +76,7 @@ export default function SearchModal() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
               className="w-full max-w-2xl bg-surface border border-border rounded-xl shadow-2xl overflow-hidden"
             >
               {/* Search Input */}
@@ -89,9 +90,16 @@ export default function SearchModal() {
                   className="flex-1 bg-transparent border-none outline-none text-base"
                   autoFocus
                 />
-                <kbd className="px-2 py-1 text-xs font-medium text-text-tertiary bg-background border border-border rounded">
+                <kbd className="hidden sm:inline-block px-2 py-1 text-xs font-medium text-text-tertiary bg-background border border-border rounded">
                   ESC
                 </kbd>
+                <button
+                  onClick={closeSearch}
+                  className="sm:hidden w-8 h-8 rounded-md border border-border bg-surface flex items-center justify-center hover:bg-background transition-colors"
+                  aria-label="Close search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
               {/* Results */}

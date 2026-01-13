@@ -1,156 +1,124 @@
-# 🚀 Инструкция по деплою AI Business Portfolio Manager
+# 🚀 Deployment Guide - AI Business Portfolio Manager
 
-Следуйте этим шагам, чтобы получить публичную ссылку на ваш проект.
+Полная инструкция по деплою проекта на production.
 
-## Шаг 1: Создайте GitHub репозиторий
+## 📋 Что нужно задеплоить
 
-### Вариант A: Через веб-интерфейс (рекомендуется)
-
-1. Откройте в браузере: https://github.com/new
-2. Заполните форму:
-   - **Repository name**: `ai-business-portfolio-manager`
-   - **Description**: AI-powered business idea portfolio manager with authentication
-   - **Visibility**: Public (чтобы можно было показывать другим)
-   - ❌ **НЕ** ставьте галочки на "Add a README", ".gitignore", "license" (они уже есть в проекте)
-3. Нажмите **Create repository**
-4. **Скопируйте URL** репозитория (будет вида: `https://github.com/ваш-username/ai-business-portfolio-manager.git`)
-
-### Вариант B: Через командную строку (если установлен gh CLI)
-
-```bash
-gh auth login
-gh repo create ai-business-portfolio-manager --public --source=. --remote=origin --push
-```
-
-## Шаг 2: Подключите GitHub к вашему проекту
-
-Откройте терминал и выполните команды ниже.
-
-**ВАЖНО**: Замените `YOUR_GITHUB_USERNAME` на ваш реальный GitHub username!
-
-```bash
-# Перейдите в папку проекта
-cd "/Users/vardanajrapetan/Project 1"
-
-# Добавьте удаленный репозиторий
-git remote add origin https://github.com/YOUR_GITHUB_USERNAME/ai-business-portfolio-manager.git
-
-# Запушьте код на GitHub
-git push -u origin main
-```
-
-### Пример с вашим username (замените vardanajrapetan на ваш):
-```bash
-git remote add origin https://github.com/vardanajrapetan/ai-business-portfolio-manager.git
-git push -u origin main
-```
-
-## Шаг 3: Деплой на Vercel
-
-### Вариант A: Через веб-интерфейс (самый простой)
-
-1. Откройте: https://vercel.com/signup
-2. Зарегистрируйтесь через GitHub аккаунт
-3. После регистрации нажмите **Add New... → Project**
-4. Выберите **Import Git Repository**
-5. Найдите репозиторий `ai-business-portfolio-manager`
-6. Нажмите **Import**
-7. **Настройки проекта**:
-   - Framework Preset: Vite
-   - Root Directory: `./` (оставьте как есть)
-   - Build Command: `cd frontend && npm install && npm run build`
-   - Output Directory: `frontend/dist`
-   - Install Command: `npm install` (или оставьте пустым)
-8. Нажмите **Deploy**
-9. Через 2-3 минуты получите ссылку вида: `https://ai-business-portfolio-manager.vercel.app`
-
-### Вариант B: Через Vercel CLI (для продвинутых)
-
-```bash
-# Установите Vercel CLI
-npm install -g vercel
-
-# Запустите деплой
-cd "/Users/vardanajrapetan/Project 1"
-vercel
-
-# Следуйте инструкциям в терминале
-# Выберите ваш GitHub аккаунт
-# Подтвердите настройки проекта
-```
-
-## Шаг 4: Получите публичную ссылку
-
-После успешного деплоя Vercel покажет вам ссылку:
-
-```
-✅ Deployed to production. Run `vercel --prod` to overwrite later.
-🔗 https://ai-business-portfolio-manager.vercel.app
-```
-
-Эту ссылку можно отправлять другим людям!
-
-## 🎯 Быстрый чеклист
-
-- [ ] Создать GitHub репозиторий на https://github.com/new
-- [ ] Скопировать URL репозитория
-- [ ] Выполнить `git remote add origin <URL>`
-- [ ] Выполнить `git push -u origin main`
-- [ ] Зарегистрироваться на Vercel через GitHub
-- [ ] Импортировать проект в Vercel
-- [ ] Дождаться деплоя (2-3 минуты)
-- [ ] Получить публичную ссылку!
-
-## 🔧 Если что-то пошло не так
-
-### Ошибка: "remote origin already exists"
-```bash
-git remote remove origin
-git remote add origin <ваш-URL>
-```
-
-### Ошибка при push (требуется авторизация)
-```bash
-# Используйте Personal Access Token вместо пароля
-# Создайте токен: https://github.com/settings/tokens
-```
-
-### Build failed на Vercel
-- Проверьте, что Build Command: `cd frontend && npm install && npm run build`
-- Проверьте, что Output Directory: `frontend/dist`
-
-## 📱 Что можно будет показать
-
-После деплоя на вашем сайте будет работать:
-
-✅ Главная страница с dashboard идей
-✅ Регистрация и авторизация пользователей
-✅ Профиль с настройками
-✅ Страница подписок (Free/Pro/Enterprise)
-✅ Темная/светлая тема
-✅ Адаптивный дизайн для мобильных
-
-### Тестовый аккаунт для демонстрации:
-- Email: `vardana@example.com`
-- Password: `demo123`
-
-### Admin панель (AI Agents):
-- URL: `/login`
-- Username: `Админ`
-- Password: `987654`
-
-## 🚀 Автоматическое обновление
-
-После первого деплоя, каждый раз когда вы будете пушить код на GitHub:
-
-```bash
-git add .
-git commit -m "Update: описание изменений"
-git push
-```
-
-Vercel **автоматически** задеплоит новую версию!
+1. **Backend (FastAPI)** → Railway.app
+2. **Frontend (React + Vite)** → Vercel (https://test-1-iota-sepia.vercel.app)
 
 ---
 
-**Нужна помощь?** Напишите мне, на каком шаге возникли проблемы.
+## 🔧 ЧАСТЬ 1: Деплой Backend на Railway
+
+### Шаг 1: Создайте проект на Railway
+
+1. Перейдите на https://railway.app и войдите через GitHub
+2. Нажмите "New Project" → "Deploy from GitHub repo"
+3. Выберите ваш репозиторий
+4. Укажите Root Directory: **backend**
+
+### Шаг 2: Настройте переменные окружения
+
+В Railway Dashboard → Variables добавьте:
+
+```env
+# OpenAI (ОБЯЗАТЕЛЬНО!)
+OPENAI_API_KEY=your-openai-api-key-here
+
+# Database
+DATABASE_URL=sqlite:///./business_portfolio.db
+
+# Security
+SECRET_KEY=your-super-secret-production-key-min-32-chars-please-change
+ENVIRONMENT=production
+DEBUG=false
+
+# CORS (добавьте ваш Vercel URL)
+CORS_ORIGINS=https://test-1-iota-sepia.vercel.app,http://localhost:5173
+```
+
+### Шаг 3: Настройте Start Command
+
+Settings → Start Command:
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
+
+### Шаг 4: Деплой
+
+Railway автоматически задеплоит проект. Вы получите URL:
+```
+https://your-app.up.railway.app
+```
+
+**СОХРАНИТЕ ЭТОТ URL!** Он понадобится для фронтенда.
+
+---
+
+## 🎨 ЧАСТЬ 2: Деплой Frontend на Vercel
+
+### Вариант 1: Через Vercel Dashboard (Рекомендуется)
+
+1. Перейдите на https://vercel.com/new
+2. Импортируйте GitHub репозиторий
+3. Настройте:
+   - **Framework:** Vite
+   - **Root Directory:** `frontend`
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `dist`
+
+4. Environment Variables:
+   - Name: **VITE_API_URL**
+   - Value: **https://your-app.up.railway.app** (ваш Railway URL)
+
+5. Deploy!
+
+### Вариант 2: Через Vercel CLI
+
+```bash
+cd frontend
+npm install -g vercel
+vercel login
+vercel --prod
+```
+
+---
+
+## ✅ Быстрая проверка
+
+### 1. Backend работает?
+```bash
+curl https://your-app.up.railway.app/health
+curl https://your-app.up.railway.app/api/v1/trends/
+```
+
+### 2. Frontend работает?
+Откройте https://test-1-iota-sepia.vercel.app
+
+### 3. Нет CORS ошибок?
+Проверьте Console в DevTools (F12)
+
+---
+
+## 🐛 Частые проблемы
+
+### CORS Error
+**Решение:** Добавьте Vercel URL в CORS_ORIGINS на Railway
+
+### API не работает
+**Решение:** Проверьте VITE_API_URL в Vercel Environment Variables
+
+### 500 Error на Railway
+**Решение:** Проверьте логи Railway Dashboard → Logs
+
+---
+
+## 🎯 После деплоя
+
+Ваше приложение доступно:
+- **Frontend:** https://test-1-iota-sepia.vercel.app  
+- **Backend API:** https://your-app.up.railway.app
+- **Swagger UI:** https://your-app.up.railway.app/docs
+
+**Готово!** 🚀
