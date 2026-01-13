@@ -1,6 +1,7 @@
 import MetricCard from '../components/dashboard/MetricCard'
 import IdeaCard from '../components/ideas/IdeaCard'
 import TrendChart from '../components/charts/TrendChart'
+import HeroSection from '../components/hero/HeroSection'
 import { BarChart3, Briefcase, Code, Sparkles } from 'lucide-react'
 import { mockProjects } from '../data/mockData'
 import { useChat } from '../contexts/ChatContext'
@@ -66,6 +67,9 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Hero Section */}
+      <HeroSection />
+
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <MetricCard
@@ -102,7 +106,7 @@ export default function Dashboard() {
       <TrendChart />
 
       {/* Trending Ideas Section */}
-      <section className="bg-surface border border-border rounded-lg p-4 shadow-sm">
+      <section data-section="ideas" className="bg-surface border border-border rounded-lg p-4 shadow-sm">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-bold flex items-center gap-1">
             <span>🔥</span>
