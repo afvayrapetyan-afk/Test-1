@@ -19,9 +19,29 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
+      // Если API указывает на localhost, сразу используем mock данные
+      const isLocalhost = API_ENDPOINTS.ideas.list.includes('localhost')
+
+      if (isLocalhost) {
+        setUseMockData(true)
+        setLoading(false)
+        return
+      }
+
       try {
-        // Загружаем идеи
-        const ideasResponse = await fetch(API_ENDPOINTS.ideas.list)
+        // Загружаем идеи с таймаутом
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 5000)
+
+        const ideasResponse = await fetch(API_ENDPOINTS.ideas.list, {
+          signal: controller.signal
+        })
+        clearTimeout(timeoutId)
+
+        if (!ideasResponse.ok) {
+          throw new Error('API error')
+        }
+
         const ideasData = await ideasResponse.json()
 
         // Загружаем тренды
@@ -33,7 +53,6 @@ export default function Dashboard() {
           setIdeas(ideasData.items)
         } else {
           // Fallback на mock данные
-          setIdeas([])
           setUseMockData(true)
         }
         setTrends(trendsData.items || [])
