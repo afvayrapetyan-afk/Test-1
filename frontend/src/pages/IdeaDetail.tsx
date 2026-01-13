@@ -34,20 +34,11 @@ export default function IdeaDetail() {
       try {
         setLoading(true)
 
-        // Проверяем, есть ли mock данные для этого ID
-        const isLocalhost = API_ENDPOINTS.ideas.list.includes('localhost')
-        const mockIdea = mockIdeaDetails[id || '']
-
-        // Если localhost или есть mock данные, используем их
-        if (isLocalhost && mockIdea) {
-          setIdea(mockIdea)
-          setLoading(false)
-          return
-        }
-
-        const response = await fetch(`${API_ENDPOINTS.ideas.get(Number(id))}`)
+        // Загружаем детальные данные из API
+        const response = await fetch(API_ENDPOINTS.ideas.get(Number(id)))
         if (!response.ok) {
           // Пробуем mock данные при ошибке
+          const mockIdea = mockIdeaDetails[id || '']
           if (mockIdea) {
             setIdea(mockIdea)
             setLoading(false)

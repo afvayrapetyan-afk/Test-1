@@ -43,6 +43,7 @@ class IdeaBase(BaseModel):
     source: Optional[str] = Field(default="AI Analysis", max_length=200)
     category: Optional[str] = Field(None, max_length=50)
     is_trending: Optional[bool] = Field(default=False)
+    is_russia_relevant: Optional[bool] = Field(default=False)
     trend_id: Optional[int] = None
 
     @field_validator('category')
@@ -132,6 +133,7 @@ class IdeaFrontendOut(BaseModel):
     source: str
     category: str
     isTrending: bool
+    isRussiaRelevant: bool = False
     score: float
     timeAgo: str
     createdAt: Optional[str] = None

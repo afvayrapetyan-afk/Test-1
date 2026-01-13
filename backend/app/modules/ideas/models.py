@@ -35,6 +35,7 @@ class Idea(Base):
     )  # ai, saas, ecommerce, fintech, health, education, entertainment
 
     is_trending = Column(Integer, default=0)  # Boolean flag for trending ideas
+    is_russia_relevant = Column(Integer, default=0)  # Boolean flag for Russia-relevant ideas
 
     # Scores (0-100 for each metric)
     market_size_score = Column(
@@ -131,6 +132,7 @@ class Idea(Base):
             "source": self.source or "AI Analysis",
             "category": self.category or "ai",
             "isTrending": bool(self.is_trending),
+            "isRussiaRelevant": bool(self.is_russia_relevant),
             "score": round(self.total_score / 10, 1),  # Convert 0-100 to 0-10 scale
             "timeAgo": time_ago,
             "createdAt": self.analyzed_at.isoformat() if self.analyzed_at else None,

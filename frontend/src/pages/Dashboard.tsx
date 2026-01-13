@@ -55,14 +55,6 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const isLocalhost = API_ENDPOINTS.ideas.list.includes('localhost')
-
-      if (isLocalhost) {
-        setUseMockData(true)
-        setLoading(false)
-        return
-      }
-
       try {
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 5000)

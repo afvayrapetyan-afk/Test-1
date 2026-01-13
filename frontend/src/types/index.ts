@@ -15,6 +15,7 @@ export interface Idea {
   timeAgo: string
   score: number
   isTrending?: boolean
+  isRussiaRelevant?: boolean
   category: IdeaCategory
   createdAt: string // ISO date string
   metrics: {

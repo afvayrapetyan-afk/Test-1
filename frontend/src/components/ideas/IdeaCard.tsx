@@ -107,6 +107,7 @@ export default function IdeaCard({
       <div className="mt-5 mb-2">
         <h3 className="text-sm sm:text-base font-bold text-text-primary leading-snug line-clamp-2">
           <span className="mr-1">{idea.emoji}</span>
+          {idea.isRussiaRelevant && <span className="mr-1" title="Актуально для России">🇷🇺</span>}
           {idea.title}
         </h3>
       </div>
