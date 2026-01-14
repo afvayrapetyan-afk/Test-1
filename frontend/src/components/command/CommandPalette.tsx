@@ -62,7 +62,7 @@ export default function CommandPalette({
     {
       id: 'idea-detail',
       icon: <FileText className="w-5 h-5" />,
-      label: 'View Idea Details',
+      label: 'Детали идеи',
       subtitle: 'Открыть детальную страницу',
       shortcut: '',
       action: () => {

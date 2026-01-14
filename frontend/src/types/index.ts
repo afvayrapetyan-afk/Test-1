@@ -43,8 +43,8 @@ export interface Idea {
 // Названия категорий на русском
 export const categoryLabels: Record<IdeaCategory, string> = {
   ai: 'Искусственный интеллект',
-  saas: 'SaaS',
-  ecommerce: 'E-commerce',
+  saas: 'Облачные сервисы',
+  ecommerce: 'Интернет-торговля',
   fintech: 'Финтех',
   health: 'Здоровье',
   education: 'Образование',

@@ -48,7 +48,7 @@ export default function HeroSection() {
 
       {/* Title */}
       <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-center mb-3 sm:mb-4 text-text-primary">
-        AI Business Portfolio Manager
+        AI Портфолио Менеджер
       </h1>
 
       {/* Subtitle */}
@@ -60,19 +60,19 @@ export default function HeroSection() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <FeatureCard
           emoji="🔍"
-          title="AI Trend Scout"
+          title="Поиск трендов"
           description="Комплексный и онлайн анализ потребностей пользователей в ИИ через динамический поиск и многофакторный анализ соц сетей, новостных лент, инвест порталов и др"
           icon={<TrendingUp className="w-4 h-4" />}
         />
         <FeatureCard
           emoji="💡"
-          title="Idea Analyzer"
+          title="Анализ идей"
           description="Оценка идей по 6 метрикам: рынок, конкуренция, спрос, монетизация, реализуемость, время"
           icon={<Lightbulb className="w-4 h-4" />}
         />
         <FeatureCard
           emoji="📊"
-          title="Portfolio Manager"
+          title="Управление портфелем"
           description="Управление активными проектами с отслеживанием прогресса и метрик"
           icon={<BarChart3 className="w-4 h-4" />}
         />

@@ -117,7 +117,7 @@ export default function IdeaDetail() {
                 </div>
               </div>
               <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
-                <div className="text-sm text-blue-100">Trend ID</div>
+                <div className="text-sm text-blue-100">Тренд</div>
                 <div className="text-lg font-bold">
                   #{idea.trend_id}
                 </div>
@@ -131,7 +131,7 @@ export default function IdeaDetail() {
             </div>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-2xl px-6 py-4 text-center">
-            <div className="text-sm text-blue-100 mb-2">AI Score</div>
+            <div className="text-sm text-blue-100 mb-2">Оценка</div>
             <div className="text-5xl font-bold">{idea.total_score}</div>
             <div className="text-sm text-blue-100">/100</div>
           </div>

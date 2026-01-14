@@ -20,8 +20,8 @@ export default function TopBar({ onCommandClick, onNotificationsClick, onProfile
           <div className="flex items-center gap-1 min-w-0">
             <span className="text-xl sm:text-2xl">🚀</span>
             <span className="text-sm sm:text-lg font-bold text-text-primary truncate">
-              <span className="hidden sm:inline">AI Portfolio Manager</span>
-              <span className="sm:hidden">AI Portfolio</span>
+              <span className="hidden sm:inline">AI Портфолио Менеджер</span>
+              <span className="sm:hidden">AI Портфолио</span>
             </span>
           </div>
 
