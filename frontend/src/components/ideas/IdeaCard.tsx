@@ -1,6 +1,6 @@
 import { MessageCircle, FileText, TrendingUp, Users, DollarSign, Clock, Heart, X } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { Idea, categoryLabels, regionLabels, Region } from '../../types'
+import { Idea, categoryLabels } from '../../types'
 
 interface IdeaCardProps {
   idea: Idea
