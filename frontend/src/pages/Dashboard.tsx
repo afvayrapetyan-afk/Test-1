@@ -2,7 +2,7 @@ import MetricCard from '../components/dashboard/MetricCard'
 import IdeaCard from '../components/ideas/IdeaCard'
 import TrendChart from '../components/charts/TrendChart'
 import HeroSection from '../components/hero/HeroSection'
-import { BarChart3, Code, Sparkles, Filter, SortAsc, Heart, ChevronDown } from 'lucide-react'
+import { BarChart3, Code, Sparkles, Filter, SortAsc, Heart, ChevronDown, ThumbsDown } from 'lucide-react'
 import { mockIdeas } from '../data/mockData'
 import { useChat } from '../contexts/ChatContext'
 import { useNavigate } from 'react-router-dom'
@@ -41,16 +41,13 @@ function ScrollReveal({
 type SortOption = 'date' | 'score'
 type ViewTab = 'all' | 'favorites'
 
-// localStorage keys
-const LIKED_KEY = 'idea_liked_ids'
-const HIDDEN_KEY = 'idea_hidden_ids'
-
 export default function Dashboard() {
   const { openChat } = useChat()
   const navigate = useNavigate()
   const [ideas, setIdeas] = useState<Idea[]>([])
   const [loading, setLoading] = useState(true)
   const [useMockData, setUseMockData] = useState(false)
+  const [favoritesCount, setFavoritesCount] = useState(0)
 
   // Фильтры и сортировка
   const [selectedCategory, setSelectedCategory] = useState<IdeaCategory | 'all'>('all')
@@ -60,27 +57,6 @@ export default function Dashboard() {
   const [showFilters, setShowFilters] = useState(false)
   const [showRegionFilter, setShowRegionFilter] = useState(false)
   const [visibleCount, setVisibleCount] = useState(6)
-
-  // Лайки и скрытые
-  const [likedIds, setLikedIds] = useState<Set<string>>(new Set())
-  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set())
-
-  // Загрузка из localStorage
-  useEffect(() => {
-    const savedLiked = localStorage.getItem(LIKED_KEY)
-    const savedHidden = localStorage.getItem(HIDDEN_KEY)
-    if (savedLiked) setLikedIds(new Set(JSON.parse(savedLiked)))
-    if (savedHidden) setHiddenIds(new Set(JSON.parse(savedHidden)))
-  }, [])
-
-  // Сохранение в localStorage
-  useEffect(() => {
-    localStorage.setItem(LIKED_KEY, JSON.stringify([...likedIds]))
-  }, [likedIds])
-
-  useEffect(() => {
-    localStorage.setItem(HIDDEN_KEY, JSON.stringify([...hiddenIds]))
-  }, [hiddenIds])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -101,6 +77,7 @@ export default function Dashboard() {
 
         if (ideasData.items && ideasData.items.length > 0) {
           setIdeas(ideasData.items)
+          setFavoritesCount(ideasData.favorites_count || 0)
         } else {
           setUseMockData(true)
         }
@@ -115,27 +92,49 @@ export default function Dashboard() {
     fetchData()
   }, [])
 
-  // Обработчики лайков
-  const handleLike = (id: string) => {
-    setLikedIds(prev => {
-      const next = new Set(prev)
-      if (next.has(id)) {
-        next.delete(id)
-      } else {
-        next.add(id)
+  // Обработчик избранного (через API)
+  const handleLike = async (id: string) => {
+    try {
+      const response = await fetch(API_ENDPOINTS.ideas.favorite(id), {
+        method: 'POST'
+      })
+      if (response.ok) {
+        const result = await response.json()
+        const updatedIdea = result.data
+        // Обновляем идею в списке
+        setIdeas(prev => prev.map(idea =>
+          idea.id === id ? { ...idea, isFavorite: updatedIdea.isFavorite, isDisliked: updatedIdea.isDisliked } : idea
+        ))
+        // Обновляем счётчик
+        setFavoritesCount(prev => updatedIdea.isFavorite ? prev + 1 : prev - 1)
       }
-      return next
-    })
+    } catch (error) {
+      console.error('Error toggling favorite:', error)
+    }
   }
 
-  const handleDislike = (id: string) => {
-    setHiddenIds(prev => new Set([...prev, id]))
-    // Убираем из лайков если был
-    setLikedIds(prev => {
-      const next = new Set(prev)
-      next.delete(id)
-      return next
-    })
+  // Обработчик дизлайка (через API)
+  const handleDislike = async (id: string) => {
+    try {
+      const response = await fetch(API_ENDPOINTS.ideas.dislike(id), {
+        method: 'POST'
+      })
+      if (response.ok) {
+        const result = await response.json()
+        const updatedIdea = result.data
+        // Обновляем идею в списке
+        setIdeas(prev => prev.map(idea =>
+          idea.id === id ? { ...idea, isFavorite: updatedIdea.isFavorite, isDisliked: updatedIdea.isDisliked } : idea
+        ))
+        // Если был в избранном и теперь дизлайкнут, уменьшаем счётчик
+        const wasInFavorites = ideas.find(i => i.id === id)?.isFavorite
+        if (wasInFavorites && updatedIdea.isDisliked) {
+          setFavoritesCount(prev => prev - 1)
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling dislike:', error)
+    }
   }
 
   const handleChatClick = () => {
@@ -153,12 +152,9 @@ export default function Dashboard() {
   const filteredIdeas = useMemo(() => {
     let result = [...allIdeas]
 
-    // Убираем скрытые
-    result = result.filter(idea => !hiddenIds.has(idea.id))
-
     // Вкладка избранных
     if (viewTab === 'favorites') {
-      result = result.filter(idea => likedIds.has(idea.id))
+      result = result.filter(idea => idea.isFavorite)
     }
 
     // Фильтр по категории
@@ -171,15 +167,22 @@ export default function Dashboard() {
       result = result.filter(idea => idea.regions?.[selectedRegion])
     }
 
-    // Сортировка
-    if (sortBy === 'score') {
-      result.sort((a, b) => b.score - a.score)
-    } else {
-      result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    }
+    // Сортировка (дизлайкнутые уже в конце от API, но добавим на всякий случай)
+    result.sort((a, b) => {
+      // Дизлайкнутые всегда в конце
+      if (a.isDisliked && !b.isDisliked) return 1
+      if (!a.isDisliked && b.isDisliked) return -1
+
+      // Затем основная сортировка
+      if (sortBy === 'score') {
+        return b.score - a.score
+      } else {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      }
+    })
 
     return result
-  }, [allIdeas, hiddenIds, likedIds, viewTab, selectedCategory, selectedRegion, sortBy])
+  }, [allIdeas, viewTab, selectedCategory, selectedRegion, sortBy])
 
   // Видимые идеи (пагинация)
   const visibleIdeas = filteredIdeas.slice(0, visibleCount)
@@ -210,9 +213,9 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
         {[
           { label: "Всего идей", value: loading ? '...' : allIdeas.length.toString(), change: `${allIdeas.filter(i => i.score >= 7.5).length} топовых`, isPositive: true, icon: <BarChart3 /> },
-          { label: "В избранном", value: likedIds.size.toString(), change: "Ваш выбор", isPositive: true, icon: <Heart /> },
+          { label: "В избранном", value: favoritesCount.toString(), change: "Ваш выбор", isPositive: true, icon: <Heart /> },
           { label: "Средняя оценка", value: loading ? '...' : allIdeas.length > 0 ? (allIdeas.reduce((sum, i) => sum + i.score, 0) / allIdeas.length).toFixed(1) : '0', change: "AI анализ", isPositive: true, icon: <Code /> },
-          { label: "Скрыто", value: hiddenIds.size.toString(), change: "Не интересует", isPositive: false, icon: <Sparkles /> },
+          { label: "Не интересно", value: allIdeas.filter(i => i.isDisliked).length.toString(), change: "Дизлайки", isPositive: false, icon: <ThumbsDown /> },
         ].map((metric, index) => (
           <motion.div
             key={metric.label}
@@ -249,7 +252,7 @@ export default function Dashboard() {
           >
             🔥 Все идеи
             <span className="text-xs bg-background px-2 py-0.5 rounded-full">
-              {allIdeas.filter(i => !hiddenIds.has(i.id)).length}
+              {allIdeas.length}
             </span>
           </button>
           <button
@@ -262,7 +265,7 @@ export default function Dashboard() {
           >
             ❤️ Избранное
             <span className="text-xs bg-background px-2 py-0.5 rounded-full">
-              {likedIds.size}
+              {favoritesCount}
             </span>
           </button>
         </div>
@@ -414,7 +417,8 @@ export default function Dashboard() {
                     onDetailsClick={() => handleDetailsClick(idea.id)}
                     onLike={handleLike}
                     onDislike={handleDislike}
-                    isLiked={likedIds.has(idea.id)}
+                    isLiked={idea.isFavorite}
+                    isDisliked={idea.isDisliked}
                   />
                 ))}
               </AnimatePresence>

@@ -4,7 +4,7 @@ Handles all database operations for ideas
 """
 
 from sqlalchemy.orm import Session
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, asc, case
 from typing import List, Tuple, Optional
 
 from app.modules.ideas.models import Idea
@@ -58,13 +58,18 @@ class IdeaRepository:
         # Get total count before pagination
         total = query.count()
 
-        # Apply sorting
+        # Apply sorting - disliked items always go to the end
+        # First sort by is_disliked (0 first, 1 last), then by the chosen criteria
         if sort_by == "score":
-            # Sort by average score - using market_size_score as proxy
-            # For exact sorting by total_score, would need computed column
-            query = query.order_by(desc(Idea.market_size_score))
+            query = query.order_by(
+                asc(Idea.is_disliked),  # Non-disliked first
+                desc(Idea.market_size_score)
+            )
         else:  # date
-            query = query.order_by(desc(Idea.analyzed_at))
+            query = query.order_by(
+                asc(Idea.is_disliked),  # Non-disliked first
+                desc(Idea.analyzed_at)
+            )
 
         # Pagination
         ideas = query.offset(skip).limit(limit).all()
@@ -179,3 +184,32 @@ class IdeaRepository:
             .order_by(desc(Idea.total_score))
             .all()
         )
+
+    def toggle_favorite(self, idea_id: int) -> Optional[Idea]:
+        """Toggle favorite status for an idea"""
+        idea = self.get_by_id(idea_id)
+        if not idea:
+            return None
+
+        idea.is_favorite = 0 if idea.is_favorite else 1
+        self.db.commit()
+        self.db.refresh(idea)
+        return idea
+
+    def toggle_dislike(self, idea_id: int) -> Optional[Idea]:
+        """Toggle dislike status for an idea"""
+        idea = self.get_by_id(idea_id)
+        if not idea:
+            return None
+
+        idea.is_disliked = 0 if idea.is_disliked else 1
+        # If disliking, remove from favorites
+        if idea.is_disliked:
+            idea.is_favorite = 0
+        self.db.commit()
+        self.db.refresh(idea)
+        return idea
+
+    def get_favorites_count(self) -> int:
+        """Get count of favorited ideas"""
+        return self.db.query(func.count(Idea.id)).filter(Idea.is_favorite == 1).scalar() or 0

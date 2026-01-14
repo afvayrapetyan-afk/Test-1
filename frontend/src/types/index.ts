@@ -23,6 +23,8 @@ export interface Idea {
   timeAgo: string
   score: number
   isTrending?: boolean
+  isFavorite?: boolean
+  isDisliked?: boolean
   regions: IdeaRegions
   category: IdeaCategory
   createdAt: string // ISO date string

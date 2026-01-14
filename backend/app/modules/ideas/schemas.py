@@ -154,6 +154,8 @@ class IdeaFrontendOut(BaseModel):
     metrics: IdeaMetrics
     financial: IdeaFinancial
     status: str
+    isFavorite: bool = False
+    isDisliked: bool = False
 
     class Config:
         from_attributes = True
@@ -197,6 +199,7 @@ class IdeaListFrontend(BaseModel):
     skip: int
     limit: int
     has_more: bool
+    favorites_count: int = 0
 
 
 class IdeaList(BaseModel):

@@ -108,6 +108,10 @@ class Idea(Base):
         index=True
     )  # pending, approved, rejected, in_development, launched
 
+    # User interactions
+    is_favorite = Column(Integer, default=0, index=True)  # 1 = favorited
+    is_disliked = Column(Integer, default=0, index=True)  # 1 = disliked
+
     # Relationships
     # trend = relationship("Trend", backref="ideas")
 
@@ -158,7 +162,9 @@ class Idea(Base):
             },
             "status": self.status,
             "analyzed_at": self.analyzed_at.isoformat() if self.analyzed_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "isFavorite": bool(self.is_favorite),
+            "isDisliked": bool(self.is_disliked)
         }
 
     def to_dict_detailed(self):

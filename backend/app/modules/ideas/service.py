@@ -56,12 +56,16 @@ class IdeaService:
         # Convert to frontend format using to_dict()
         items = [idea.to_dict() for idea in ideas]
 
+        # Get favorites count
+        favorites_count = self.repository.get_favorites_count()
+
         return {
             "items": items,
             "total": total,
             "skip": skip,
             "limit": limit,
-            "has_more": has_more
+            "has_more": has_more,
+            "favorites_count": favorites_count
         }
 
     def get_idea(self, idea_id: int, detailed: bool = False) -> Optional[Union[IdeaOut, IdeaDetailedOut]]:
@@ -168,3 +172,23 @@ class IdeaService:
         """Get all ideas for a specific trend"""
         ideas = self.repository.get_by_trend(trend_id)
         return [IdeaOut.model_validate(idea) for idea in ideas]
+
+    def toggle_favorite(self, idea_id: int) -> Optional[dict]:
+        """Toggle favorite status for an idea"""
+        idea = self.repository.toggle_favorite(idea_id)
+        if not idea:
+            logger.warning("Idea not found for favorite toggle", idea_id=idea_id)
+            return None
+
+        logger.info("Idea favorite toggled", idea_id=idea_id, is_favorite=bool(idea.is_favorite))
+        return idea.to_dict()
+
+    def toggle_dislike(self, idea_id: int) -> Optional[dict]:
+        """Toggle dislike status for an idea"""
+        idea = self.repository.toggle_dislike(idea_id)
+        if not idea:
+            logger.warning("Idea not found for dislike toggle", idea_id=idea_id)
+            return None
+
+        logger.info("Idea dislike toggled", idea_id=idea_id, is_disliked=bool(idea.is_disliked))
+        return idea.to_dict()

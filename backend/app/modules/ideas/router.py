@@ -162,3 +162,50 @@ async def analyze_trends(
             "message": "Analysis started. Check /api/v1/agents/executions for progress"
         }
     }
+
+
+@router.post("/{idea_id}/favorite")
+async def toggle_favorite(
+    idea_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Toggle favorite status for an idea
+    """
+    service = IdeaService(db)
+    idea = service.toggle_favorite(idea_id)
+
+    if not idea:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Idea with id {idea_id} not found"
+        )
+
+    return {
+        "success": True,
+        "data": idea
+    }
+
+
+@router.post("/{idea_id}/dislike")
+async def toggle_dislike(
+    idea_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Toggle dislike status for an idea.
+    Disliked ideas appear at the end of any sorting.
+    """
+    service = IdeaService(db)
+    idea = service.toggle_dislike(idea_id)
+
+    if not idea:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Idea with id {idea_id} not found"
+        )
+
+    return {
+        "success": True,
+        "data": idea
+    }

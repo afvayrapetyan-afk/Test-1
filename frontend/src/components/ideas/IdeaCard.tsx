@@ -1,4 +1,4 @@
-import { MessageCircle, FileText, TrendingUp, Users, DollarSign, Clock, Heart, X } from 'lucide-react'
+import { MessageCircle, FileText, TrendingUp, Users, DollarSign, Clock, Heart, ThumbsDown } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Idea, categoryLabels } from '../../types'
 
@@ -9,6 +9,7 @@ interface IdeaCardProps {
   onLike?: (id: string) => void
   onDislike?: (id: string) => void
   isLiked?: boolean
+  isDisliked?: boolean
   showActions?: boolean
 }
 
@@ -57,6 +58,7 @@ export default function IdeaCard({
   onLike,
   onDislike,
   isLiked = false,
+  isDisliked = false,
   showActions = true,
 }: IdeaCardProps) {
   const rating = getRating(idea.score)
@@ -67,22 +69,26 @@ export default function IdeaCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -100, scale: 0.9 }}
       whileHover={{ y: -2 }}
-      className={`relative bg-surface border border-border ${rating.borderColor} border-l-4 rounded-lg p-3 sm:p-4 transition-smooth hover:shadow-lg cursor-pointer`}
+      className={`relative bg-surface border border-border ${rating.borderColor} border-l-4 rounded-lg p-3 sm:p-4 transition-smooth hover:shadow-lg cursor-pointer ${isDisliked ? 'opacity-50' : ''}`}
       onClick={onDetailsClick}
     >
       {/* Action buttons */}
       {showActions && (
         <>
-          {/* Close button - top left, small red */}
+          {/* Dislike button - top left */}
           <button
             onClick={(e) => {
               e.stopPropagation()
               onDislike?.(idea.id)
             }}
-            className="absolute top-1 left-1 w-5 h-5 flex items-center justify-center rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors z-10"
-            title="Скрыть"
+            className={`absolute top-1 left-1 w-5 h-5 flex items-center justify-center rounded-full transition-colors z-10 ${
+              isDisliked
+                ? 'bg-gray-500 text-white'
+                : 'bg-gray-500/10 text-gray-500 hover:bg-gray-500 hover:text-white'
+            }`}
+            title={isDisliked ? 'Убрать дизлайк' : 'Не интересно'}
           >
-            <X className="w-3 h-3" />
+            <ThumbsDown className={`w-3 h-3 ${isDisliked ? 'fill-current' : ''}`} />
           </button>
 
           {/* Like button - top right */}
