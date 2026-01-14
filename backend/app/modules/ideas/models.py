@@ -35,7 +35,11 @@ class Idea(Base):
     )  # ai, saas, ecommerce, fintech, health, education, entertainment
 
     is_trending = Column(Integer, default=0)  # Boolean flag for trending ideas
-    is_russia_relevant = Column(Integer, default=0)  # Boolean flag for Russia-relevant ideas
+
+    # Region relevance flags
+    is_russia_relevant = Column(Integer, default=0)  # 🇷🇺 Russia
+    is_armenia_relevant = Column(Integer, default=0)  # 🇦🇲 Armenia
+    is_global_relevant = Column(Integer, default=1)  # 🌍 Global/World
 
     # Scores (0-100 for each metric)
     market_size_score = Column(
@@ -132,7 +136,11 @@ class Idea(Base):
             "source": self.source or "AI Analysis",
             "category": self.category or "ai",
             "isTrending": bool(self.is_trending),
-            "isRussiaRelevant": bool(self.is_russia_relevant),
+            "regions": {
+                "russia": bool(self.is_russia_relevant),
+                "armenia": bool(self.is_armenia_relevant),
+                "global": bool(self.is_global_relevant),
+            },
             "score": round(self.total_score / 10, 1),  # Convert 0-100 to 0-10 scale
             "timeAgo": time_ago,
             "createdAt": self.analyzed_at.isoformat() if self.analyzed_at else None,

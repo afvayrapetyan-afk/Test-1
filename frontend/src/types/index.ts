@@ -7,6 +7,14 @@ export type IdeaCategory =
   | 'education'
   | 'entertainment'
 
+export type Region = 'russia' | 'armenia' | 'global'
+
+export interface IdeaRegions {
+  russia: boolean
+  armenia: boolean
+  global: boolean
+}
+
 export interface Idea {
   id: string
   title: string
@@ -15,7 +23,7 @@ export interface Idea {
   timeAgo: string
   score: number
   isTrending?: boolean
-  isRussiaRelevant?: boolean
+  regions: IdeaRegions
   category: IdeaCategory
   createdAt: string // ISO date string
   metrics: {
@@ -41,6 +49,13 @@ export const categoryLabels: Record<IdeaCategory, string> = {
   health: 'Здоровье',
   education: 'Образование',
   entertainment: 'Развлечения',
+}
+
+// Регионы с флагами и названиями
+export const regionLabels: Record<Region, { flag: string; name: string }> = {
+  russia: { flag: '🇷🇺', name: 'Россия' },
+  armenia: { flag: '🇦🇲', name: 'Армения' },
+  global: { flag: '🌍', name: 'Мир' },
 }
 
 export interface Project {

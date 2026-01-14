@@ -1,6 +1,6 @@
 import { MessageCircle, FileText, TrendingUp, Users, DollarSign, Clock, Heart, X } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { Idea, categoryLabels } from '../../types'
+import { Idea, categoryLabels, regionLabels, Region } from '../../types'
 
 interface IdeaCardProps {
   idea: Idea
@@ -103,11 +103,16 @@ export default function IdeaCard({
         </>
       )}
 
-      {/* Header: Title + Category */}
+      {/* Header: Title + Region Flags */}
       <div className="mt-5 mb-2">
+        <div className="flex items-start gap-1 mb-1">
+          <span>{idea.emoji}</span>
+          {/* Region flags */}
+          {idea.regions?.russia && <span title="Актуально для России">🇷🇺</span>}
+          {idea.regions?.armenia && <span title="Актуально для Армении">🇦🇲</span>}
+          {idea.regions?.global && <span title="Глобально">🌍</span>}
+        </div>
         <h3 className="text-sm sm:text-base font-bold text-text-primary leading-snug line-clamp-2">
-          <span className="mr-1">{idea.emoji}</span>
-          {idea.isRussiaRelevant && <span className="mr-1" title="Актуально для России">🇷🇺</span>}
           {idea.title}
         </h3>
       </div>

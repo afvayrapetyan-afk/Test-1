@@ -26,6 +26,7 @@ export const mockIdeas: Idea[] = [
     score: 8.4,
     isTrending: true,
     category: 'ai',
+    regions: { russia: true, armenia: true, global: true },
     metrics: {
       marketSize: 8,
       competition: 6,
@@ -49,6 +50,7 @@ export const mockIdeas: Idea[] = [
     score: 9.1,
     isTrending: true,
     category: 'saas',
+    regions: { russia: true, armenia: false, global: true },
     metrics: {
       marketSize: 9.5,
       competition: 7,
@@ -72,6 +74,7 @@ export const mockIdeas: Idea[] = [
     score: 7.8,
     isTrending: false,
     category: 'health',
+    regions: { russia: true, armenia: true, global: false },
     metrics: {
       marketSize: 7.5,
       competition: 5.5,
@@ -95,6 +98,7 @@ export const mockIdeas: Idea[] = [
     score: 8.7,
     isTrending: true,
     category: 'education',
+    regions: { russia: true, armenia: true, global: false },
     metrics: {
       marketSize: 9,
       competition: 6,
@@ -118,6 +122,7 @@ export const mockIdeas: Idea[] = [
     score: 7.2,
     isTrending: false,
     category: 'fintech',
+    regions: { russia: false, armenia: true, global: true },
     metrics: {
       marketSize: 8,
       competition: 8,
@@ -141,6 +146,7 @@ export const mockIdeas: Idea[] = [
     score: 7.5,
     isTrending: false,
     category: 'ecommerce',
+    regions: { russia: true, armenia: true, global: false },
     metrics: {
       marketSize: 7,
       competition: 5,
@@ -164,6 +170,7 @@ export const mockIdeas: Idea[] = [
     score: 6.8,
     isTrending: false,
     category: 'entertainment',
+    regions: { russia: true, armenia: false, global: true },
     metrics: {
       marketSize: 7,
       competition: 7.5,
@@ -187,6 +194,7 @@ export const mockIdeas: Idea[] = [
     score: 8.2,
     isTrending: true,
     category: 'saas',
+    regions: { russia: true, armenia: true, global: true },
     metrics: {
       marketSize: 8.5,
       competition: 7,
@@ -210,6 +218,7 @@ export const mockIdeas: Idea[] = [
     score: 8.0,
     isTrending: false,
     category: 'health',
+    regions: { russia: true, armenia: true, global: true },
     metrics: {
       marketSize: 8,
       competition: 6.5,
@@ -233,6 +242,7 @@ export const mockIdeas: Idea[] = [
     score: 8.9,
     isTrending: true,
     category: 'ai',
+    regions: { russia: true, armenia: false, global: true },
     metrics: {
       marketSize: 9,
       competition: 7.5,

@@ -85,6 +85,8 @@ class IdeaRepository:
             category=idea_data.category,
             is_trending=1 if idea_data.is_trending else 0,
             is_russia_relevant=1 if idea_data.is_russia_relevant else 0,
+            is_armenia_relevant=1 if idea_data.is_armenia_relevant else 0,
+            is_global_relevant=1 if idea_data.is_global_relevant else 0,
             trend_id=idea_data.trend_id,
             market_size_score=idea_data.market_size_score,
             competition_score=idea_data.competition_score,

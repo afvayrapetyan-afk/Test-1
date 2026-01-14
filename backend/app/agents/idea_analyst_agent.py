@@ -160,14 +160,27 @@ class IdeaAnalystAgent(BaseAgent):
            - Найди КОНКРЕТНЫЕ доказательства спроса в России
            - Проанализируй успешные российские и зарубежные аналоги
 
-        2. ОПРЕДЕЛИ АКТУАЛЬНОСТЬ ДЛЯ РОССИИ:
-           - is_russia_relevant: true/false - актуально ли это ИМЕННО для российского рынка
-           - Критерии актуальности для России:
+        2. ОПРЕДЕЛИ АКТУАЛЬНОСТЬ ДЛЯ РЕГИОНОВ:
+           Для каждого региона определи true/false:
+
+           🇷🇺 is_russia_relevant - актуально для РОССИИ:
              * Есть спрос в российских условиях
              * Нет сильных местных конкурентов
-             * Соответствует локальным потребностям
-             * Можно реализовать с учётом российских реалий
-             * Подходит для российского менталитета и культуры
+             * Соответствует российскому менталитету
+             * Можно реализовать с учётом санкций и локальных платежей
+
+           🇦🇲 is_armenia_relevant - актуально для АРМЕНИИ:
+             * Есть спрос в армянском обществе
+             * Подходит для маленького рынка (3 млн человек)
+             * Учитывает армянскую диаспору
+             * Соответствует местной культуре и традициям
+
+           🌍 is_global_relevant - актуально ГЛОБАЛЬНО:
+             * Универсальная идея для мирового рынка
+             * Можно масштабировать международно
+             * Нет региональных ограничений
+
+           ВАЖНО: Идея может быть актуальна для 1, 2 или всех 3 регионов!
 
         3. Оцени 6 метрик (0-100) с ПОДРОБНЫМ обоснованием НА РУССКОМ:
            - market_size: Общий объем рынка в России и количество клиентов
@@ -194,6 +207,8 @@ class IdeaAnalystAgent(BaseAgent):
             "emoji": "💡",
             "category": "ai",
             "is_russia_relevant": true,
+            "is_armenia_relevant": false,
+            "is_global_relevant": true,
             "scores": {{
                 "market_size": {{
                     "score": 85,
@@ -279,8 +294,10 @@ class IdeaAnalystAgent(BaseAgent):
         # Determine if trending based on engagement
         is_trending = trend.engagement_score > 500 if hasattr(trend, 'engagement_score') else False
 
-        # Determine if relevant for Russia
+        # Determine region relevance
         is_russia_relevant = analysis.get("is_russia_relevant", False)
+        is_armenia_relevant = analysis.get("is_armenia_relevant", False)
+        is_global_relevant = analysis.get("is_global_relevant", True)
 
         # Create IdeaCreate schema
         idea_create = IdeaCreate(
@@ -291,6 +308,8 @@ class IdeaAnalystAgent(BaseAgent):
             category=analysis.get("category", "ai"),
             is_trending=is_trending,
             is_russia_relevant=is_russia_relevant,
+            is_armenia_relevant=is_armenia_relevant,
+            is_global_relevant=is_global_relevant,
             trend_id=trend.id,
             market_size_score=scores["market_size"]["score"],
             competition_score=scores["competition"]["score"],

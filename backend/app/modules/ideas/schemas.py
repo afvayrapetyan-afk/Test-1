@@ -43,7 +43,10 @@ class IdeaBase(BaseModel):
     source: Optional[str] = Field(default="AI Analysis", max_length=200)
     category: Optional[str] = Field(None, max_length=50)
     is_trending: Optional[bool] = Field(default=False)
+    # Region relevance
     is_russia_relevant: Optional[bool] = Field(default=False)
+    is_armenia_relevant: Optional[bool] = Field(default=False)
+    is_global_relevant: Optional[bool] = Field(default=True)
     trend_id: Optional[int] = None
 
     @field_validator('category')
@@ -124,6 +127,17 @@ class IdeaFinancial(BaseModel):
     arr: int
 
 
+class IdeaRegions(BaseModel):
+    """Region relevance flags"""
+    russia: bool = False
+    armenia: bool = False
+    global_: bool = Field(default=True, alias='global', serialization_alias='global')
+
+    model_config = {
+        'populate_by_name': True,
+    }
+
+
 class IdeaFrontendOut(BaseModel):
     """Schema for idea output - Frontend format"""
     id: str
@@ -133,7 +147,7 @@ class IdeaFrontendOut(BaseModel):
     source: str
     category: str
     isTrending: bool
-    isRussiaRelevant: bool = False
+    regions: IdeaRegions
     score: float
     timeAgo: str
     createdAt: Optional[str] = None

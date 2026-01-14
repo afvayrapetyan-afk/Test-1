@@ -8,7 +8,7 @@ import { useChat } from '../contexts/ChatContext'
 import { useNavigate } from 'react-router-dom'
 import { useState, useEffect, useMemo } from 'react'
 import { API_ENDPOINTS } from '../config/api'
-import { Idea, IdeaCategory, categoryLabels } from '../types'
+import { Idea, IdeaCategory, categoryLabels, Region, regionLabels } from '../types'
 import { AnimatePresence } from 'framer-motion'
 
 type SortOption = 'date' | 'score'
@@ -27,9 +27,11 @@ export default function Dashboard() {
 
   // Фильтры и сортировка
   const [selectedCategory, setSelectedCategory] = useState<IdeaCategory | 'all'>('all')
+  const [selectedRegion, setSelectedRegion] = useState<Region | 'all'>('all')
   const [sortBy, setSortBy] = useState<SortOption>('date')
   const [viewTab, setViewTab] = useState<ViewTab>('all')
   const [showFilters, setShowFilters] = useState(false)
+  const [showRegionFilter, setShowRegionFilter] = useState(false)
   const [visibleCount, setVisibleCount] = useState(6)
 
   // Лайки и скрытые
@@ -137,6 +139,11 @@ export default function Dashboard() {
       result = result.filter(idea => idea.category === selectedCategory)
     }
 
+    // Фильтр по региону
+    if (selectedRegion !== 'all') {
+      result = result.filter(idea => idea.regions?.[selectedRegion])
+    }
+
     // Сортировка
     if (sortBy === 'score') {
       result.sort((a, b) => b.score - a.score)
@@ -145,7 +152,7 @@ export default function Dashboard() {
     }
 
     return result
-  }, [allIdeas, hiddenIds, likedIds, viewTab, selectedCategory, sortBy])
+  }, [allIdeas, hiddenIds, likedIds, viewTab, selectedCategory, selectedRegion, sortBy])
 
   // Видимые идеи (пагинация)
   const visibleIdeas = filteredIdeas.slice(0, visibleCount)
@@ -261,6 +268,56 @@ export default function Dashboard() {
                     {cat === 'all' ? 'Все категории' : categoryLabels[cat]}
                   </button>
                 ))}
+              </div>
+            )}
+          </div>
+
+          {/* Region Filter */}
+          <div className="relative">
+            <button
+              onClick={() => { setShowRegionFilter(!showRegionFilter); setShowFilters(false); }}
+              className="flex items-center gap-2 px-3 py-1.5 bg-background border border-border rounded-lg text-sm hover:border-accent-blue transition-colors"
+            >
+              <span className="hidden sm:inline">Регион:</span>
+              <span className="font-medium">
+                {selectedRegion === 'all' ? '🌐 Все' : `${regionLabels[selectedRegion].flag} ${regionLabels[selectedRegion].name}`}
+              </span>
+              <ChevronDown className="w-4 h-4" />
+            </button>
+            {showRegionFilter && (
+              <div className="absolute top-full left-0 mt-1 bg-surface border border-border rounded-lg shadow-lg z-20 min-w-[150px]">
+                <button
+                  onClick={() => { setSelectedRegion('all'); setShowRegionFilter(false); setVisibleCount(6); }}
+                  className={`w-full text-left px-3 py-2 text-sm hover:bg-background transition-colors rounded-t-lg ${
+                    selectedRegion === 'all' ? 'text-accent-blue font-medium' : 'text-text-primary'
+                  }`}
+                >
+                  🌐 Все регионы
+                </button>
+                <button
+                  onClick={() => { setSelectedRegion('russia'); setShowRegionFilter(false); setVisibleCount(6); }}
+                  className={`w-full text-left px-3 py-2 text-sm hover:bg-background transition-colors ${
+                    selectedRegion === 'russia' ? 'text-accent-blue font-medium' : 'text-text-primary'
+                  }`}
+                >
+                  🇷🇺 Россия
+                </button>
+                <button
+                  onClick={() => { setSelectedRegion('armenia'); setShowRegionFilter(false); setVisibleCount(6); }}
+                  className={`w-full text-left px-3 py-2 text-sm hover:bg-background transition-colors ${
+                    selectedRegion === 'armenia' ? 'text-accent-blue font-medium' : 'text-text-primary'
+                  }`}
+                >
+                  🇦🇲 Армения
+                </button>
+                <button
+                  onClick={() => { setSelectedRegion('global'); setShowRegionFilter(false); setVisibleCount(6); }}
+                  className={`w-full text-left px-3 py-2 text-sm hover:bg-background transition-colors rounded-b-lg ${
+                    selectedRegion === 'global' ? 'text-accent-blue font-medium' : 'text-text-primary'
+                  }`}
+                >
+                  🌍 Мир
+                </button>
               </div>
             )}
           </div>
