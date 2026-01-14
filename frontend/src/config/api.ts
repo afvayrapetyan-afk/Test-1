@@ -24,8 +24,8 @@ export const API_ENDPOINTS = {
     get: (id: number) => `${API_URL}/api/v1/ideas/${id}`,
     detailed: (id: number) => `${API_URL}/api/v1/ideas/${id}/detailed`,
     stats: `${API_URL}/api/v1/ideas/stats`,
-    favorite: (id: string) => `${API_URL}/api/v1/ideas/${id}/favorite`,
-    dislike: (id: string) => `${API_URL}/api/v1/ideas/${id}/dislike`,
+    favorite: (id: string) => `${API_URL}/api/v1/ideas/${id}/favorite/`,
+    dislike: (id: string) => `${API_URL}/api/v1/ideas/${id}/dislike/`,
   },
 
   // Agents
