@@ -58,11 +58,10 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen bg-background">
       <TopBar
-        onCommandClick={() => setIsCommandPaletteOpen(true)}
         onNotificationsClick={() => setIsNotificationsOpen(true)}
         onProfileClick={() => setIsProfileOpen(true)}
       />
-      <main className="container mx-auto px-3 py-6 max-w-[1536px]">
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-[1536px]">
         {children}
       </main>
       <AIChatFAB />

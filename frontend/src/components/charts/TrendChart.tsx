@@ -1,31 +1,31 @@
 export default function TrendChart() {
   return (
-    <div className="bg-surface border border-border rounded-xl p-6 mb-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-bold text-text-primary">
+    <div className="bg-surface border border-border rounded-xl p-4 sm:p-6 mb-4 sm:mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <h3 className="text-sm sm:text-lg font-bold text-text-primary">
           📈 Анализ трендов за последние 30 дней
         </h3>
-        <div className="flex items-center gap-4 text-sm">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
+          <div className="flex items-center gap-1 sm:gap-2">
             <span
               className="w-2 h-2 rounded-full"
               style={{ background: '#3B82F6' }}
             />
-            <span className="text-text-secondary">Поисковые запросы</span>
+            <span className="text-text-secondary">Запросы</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <span
               className="w-2 h-2 rounded-full"
               style={{ background: '#10B981' }}
             />
-            <span className="text-text-secondary">Упоминания в соцсетях</span>
+            <span className="text-text-secondary">Соцсети</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <span
               className="w-2 h-2 rounded-full"
               style={{ background: '#F59E0B' }}
             />
-            <span className="text-text-secondary">Инвестиции в сектор</span>
+            <span className="text-text-secondary">Инвестиции</span>
           </div>
         </div>
       </div>
@@ -109,17 +109,17 @@ export default function TrendChart() {
       </svg>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-6 mt-6">
+      <div className="grid grid-cols-3 gap-2 sm:gap-6 mt-4 sm:mt-6">
         <div className="text-center">
-          <div className="text-2xl font-bold" style={{ color: '#3B82F6' }}>
+          <div className="text-lg sm:text-2xl font-bold" style={{ color: '#3B82F6' }}>
             +127%
           </div>
           <div className="text-xs text-text-secondary mt-1">
-            Рост поисковых запросов
+            Рост запросов
           </div>
         </div>
         <div className="text-center">
-          <div className="text-2xl font-bold" style={{ color: '#10B981' }}>
+          <div className="text-lg sm:text-2xl font-bold" style={{ color: '#10B981' }}>
             +94%
           </div>
           <div className="text-xs text-text-secondary mt-1">
@@ -127,7 +127,7 @@ export default function TrendChart() {
           </div>
         </div>
         <div className="text-center">
-          <div className="text-2xl font-bold" style={{ color: '#F59E0B' }}>
+          <div className="text-lg sm:text-2xl font-bold" style={{ color: '#F59E0B' }}>
             +156%
           </div>
           <div className="text-xs text-text-secondary mt-1">

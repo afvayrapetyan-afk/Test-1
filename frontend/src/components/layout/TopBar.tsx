@@ -1,15 +1,12 @@
-import { Search, Bell, User, Moon, Sun, Command } from 'lucide-react'
-import { useTheme } from '../../contexts/ThemeContext'
+import { Search, Bell, User } from 'lucide-react'
 import { useSearch } from '../../contexts/SearchContext'
 
 interface TopBarProps {
-  onCommandClick?: () => void
   onNotificationsClick?: () => void
   onProfileClick?: () => void
 }
 
-export default function TopBar({ onCommandClick, onNotificationsClick, onProfileClick }: TopBarProps) {
-  const { theme, toggleTheme } = useTheme()
+export default function TopBar({ onNotificationsClick, onProfileClick }: TopBarProps) {
   const { openSearch } = useSearch()
 
   return (
@@ -51,26 +48,6 @@ export default function TopBar({ onCommandClick, onNotificationsClick, onProfile
             </button>
 
             {/* Icon Buttons */}
-            <button
-              onClick={toggleTheme}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-md border border-border bg-surface flex items-center justify-center transition-smooth hover:-translate-y-0.5 hover:shadow-md"
-              title="Toggle Dark Mode (⌘+D)"
-            >
-              {theme === 'dark' ? (
-                <Sun className="w-4 h-4" />
-              ) : (
-                <Moon className="w-4 h-4" />
-              )}
-            </button>
-
-            <button
-              onClick={onCommandClick}
-              className="hidden sm:flex w-9 h-9 rounded-md border border-border bg-surface items-center justify-center transition-smooth hover:-translate-y-0.5 hover:shadow-md"
-              title="Command Palette (⌘+K)"
-            >
-              <Command className="w-4 h-4" />
-            </button>
-
             <button
               onClick={onNotificationsClick}
               className="w-8 h-8 sm:w-9 sm:h-9 rounded-md border border-border bg-surface flex items-center justify-center transition-smooth hover:-translate-y-0.5 hover:shadow-md relative"

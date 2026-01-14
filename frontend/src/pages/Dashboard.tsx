@@ -9,7 +9,34 @@ import { useNavigate } from 'react-router-dom'
 import { useState, useEffect, useMemo } from 'react'
 import { API_ENDPOINTS } from '../config/api'
 import { Idea, IdeaCategory, categoryLabels, Region, regionLabels } from '../types'
-import { AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
+
+// Apple-style scroll reveal animation component
+function ScrollReveal({
+  children,
+  delay = 0,
+  className = ''
+}: {
+  children: React.ReactNode
+  delay?: number
+  className?: string
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 60 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{
+        duration: 0.8,
+        delay,
+        ease: [0.25, 0.1, 0.25, 1] // Apple-like easing
+      }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  )
+}
 
 type SortOption = 'date' | 'score'
 type ViewTab = 'all' | 'favorites'
@@ -169,47 +196,47 @@ export default function Dashboard() {
   }, [allIdeas])
 
   return (
-    <div className="space-y-6">
-      {/* Hero Section */}
-      <HeroSection />
+    <div className="space-y-4 sm:space-y-6">
+      {/* Hero Section - Initial entrance animation */}
+      <motion.div
+        initial={{ opacity: 0, y: 40, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+      >
+        <HeroSection />
+      </motion.div>
 
-      {/* Metrics Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <MetricCard
-          label="Всего идей"
-          value={loading ? '...' : allIdeas.length.toString()}
-          change={`${allIdeas.filter(i => i.score >= 7.5).length} топовых`}
-          isPositive={true}
-          icon={<BarChart3 />}
-        />
-        <MetricCard
-          label="В избранном"
-          value={likedIds.size.toString()}
-          change="Ваш выбор"
-          isPositive={true}
-          icon={<Heart />}
-        />
-        <MetricCard
-          label="Средняя оценка"
-          value={loading ? '...' : allIdeas.length > 0 ? (allIdeas.reduce((sum, i) => sum + i.score, 0) / allIdeas.length).toFixed(1) : '0'}
-          change="AI анализ"
-          isPositive={true}
-          icon={<Code />}
-        />
-        <MetricCard
-          label="Скрыто"
-          value={hiddenIds.size.toString()}
-          change="Не интересует"
-          isPositive={false}
-          icon={<Sparkles />}
-        />
+      {/* Metrics Grid - Staggered entrance */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+        {[
+          { label: "Всего идей", value: loading ? '...' : allIdeas.length.toString(), change: `${allIdeas.filter(i => i.score >= 7.5).length} топовых`, isPositive: true, icon: <BarChart3 /> },
+          { label: "В избранном", value: likedIds.size.toString(), change: "Ваш выбор", isPositive: true, icon: <Heart /> },
+          { label: "Средняя оценка", value: loading ? '...' : allIdeas.length > 0 ? (allIdeas.reduce((sum, i) => sum + i.score, 0) / allIdeas.length).toFixed(1) : '0', change: "AI анализ", isPositive: true, icon: <Code /> },
+          { label: "Скрыто", value: hiddenIds.size.toString(), change: "Не интересует", isPositive: false, icon: <Sparkles /> },
+        ].map((metric, index) => (
+          <motion.div
+            key={metric.label}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.6,
+              delay: 0.3 + index * 0.1,
+              ease: [0.25, 0.1, 0.25, 1]
+            }}
+          >
+            <MetricCard {...metric} />
+          </motion.div>
+        ))}
       </div>
 
-      {/* Trend Analytics Chart */}
-      <TrendChart />
+      {/* Trend Analytics Chart - Scroll reveal */}
+      <ScrollReveal delay={0.1}>
+        <TrendChart />
+      </ScrollReveal>
 
-      {/* Ideas Section */}
-      <section data-section="ideas" className="bg-surface border border-border rounded-lg p-4 shadow-sm">
+      {/* Ideas Section - Scroll reveal */}
+      <ScrollReveal delay={0.15}>
+        <section data-section="ideas" className="bg-surface border border-border rounded-lg p-4 shadow-sm">
         {/* Tabs */}
         <div className="flex items-center gap-4 mb-4 border-b border-border pb-3">
           <button
@@ -396,17 +423,20 @@ export default function Dashboard() {
             {/* Load More */}
             {hasMore && (
               <div className="flex justify-center mt-6">
-                <button
+                <motion.button
                   onClick={handleLoadMore}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   className="px-6 py-2 bg-background border border-border rounded-lg text-sm font-medium hover:border-accent-blue hover:text-accent-blue transition-colors"
                 >
                   Показать ещё ({filteredIdeas.length - visibleCount} осталось)
-                </button>
+                </motion.button>
               </div>
             )}
           </>
         )}
-      </section>
+        </section>
+      </ScrollReveal>
     </div>
   )
 }

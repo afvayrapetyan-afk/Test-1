@@ -9,14 +9,29 @@ from typing import Generator
 
 from app.core.config import settings
 
-# Create database engine
-engine = create_engine(
-    settings.DATABASE_URL,
-    pool_size=settings.DATABASE_POOL_SIZE,
-    max_overflow=settings.DATABASE_MAX_OVERFLOW,
-    pool_pre_ping=True,  # Verify connections before using
-    echo=settings.DEBUG  # Log SQL queries in debug mode
-)
+# Handle Railway PostgreSQL URL format (postgres:// -> postgresql://)
+database_url = settings.DATABASE_URL
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+# Determine if using SQLite (for local dev) or PostgreSQL (for production)
+is_sqlite = database_url.startswith("sqlite")
+
+# Create database engine with appropriate settings
+engine_kwargs = {
+    "pool_pre_ping": True,  # Verify connections before using
+    "echo": settings.DEBUG  # Log SQL queries in debug mode
+}
+
+# Only add pool settings for non-SQLite databases
+if not is_sqlite:
+    engine_kwargs["pool_size"] = settings.DATABASE_POOL_SIZE
+    engine_kwargs["max_overflow"] = settings.DATABASE_MAX_OVERFLOW
+else:
+    # SQLite specific settings
+    engine_kwargs["connect_args"] = {"check_same_thread": False}
+
+engine = create_engine(database_url, **engine_kwargs)
 
 # Create session factory
 SessionLocal = sessionmaker(

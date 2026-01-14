@@ -300,6 +300,7 @@ export const mockIdeaDetails: Record<string, any> = {
     },
     status: 'pending',
     analyzed_at: new Date().toISOString(),
+    regions: { russia: true, armenia: true, global: true },
   },
   '2': {
     id: 2,
@@ -341,6 +342,7 @@ export const mockIdeaDetails: Record<string, any> = {
     },
     status: 'pending',
     analyzed_at: new Date().toISOString(),
+    regions: { russia: true, armenia: false, global: true },
   },
   '3': {
     id: 3,
@@ -382,6 +384,7 @@ export const mockIdeaDetails: Record<string, any> = {
     },
     status: 'pending',
     analyzed_at: new Date().toISOString(),
+    regions: { russia: true, armenia: true, global: false },
   },
 }
 
