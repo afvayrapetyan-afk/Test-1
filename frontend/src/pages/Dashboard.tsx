@@ -41,13 +41,35 @@ function ScrollReveal({
 type SortOption = 'date' | 'score'
 type ViewTab = 'all' | 'favorites'
 
+// Ключи для localStorage
+const FAVORITES_KEY = 'idea_favorites'
+const DISLIKES_KEY = 'idea_dislikes'
+
+// Загрузка из localStorage
+const loadFromStorage = (key: string): Set<string> => {
+  try {
+    const data = localStorage.getItem(key)
+    return data ? new Set(JSON.parse(data)) : new Set()
+  } catch {
+    return new Set()
+  }
+}
+
+// Сохранение в localStorage
+const saveToStorage = (key: string, data: Set<string>) => {
+  localStorage.setItem(key, JSON.stringify([...data]))
+}
+
 export default function Dashboard() {
   const { openChat } = useChat()
   const navigate = useNavigate()
   const [ideas, setIdeas] = useState<Idea[]>([])
   const [loading, setLoading] = useState(true)
   const [useMockData, setUseMockData] = useState(false)
-  const [favoritesCount, setFavoritesCount] = useState(0)
+
+  // Личные лайки/дизлайки (localStorage)
+  const [favorites, setFavorites] = useState<Set<string>>(() => loadFromStorage(FAVORITES_KEY))
+  const [dislikes, setDislikes] = useState<Set<string>>(() => loadFromStorage(DISLIKES_KEY))
 
   // Фильтры и сортировка
   const [selectedCategory, setSelectedCategory] = useState<IdeaCategory | 'all'>('all')
@@ -77,7 +99,6 @@ export default function Dashboard() {
 
         if (ideasData.items && ideasData.items.length > 0) {
           setIdeas(ideasData.items)
-          setFavoritesCount(ideasData.favorites_count || 0)
         } else {
           setUseMockData(true)
         }
@@ -92,49 +113,46 @@ export default function Dashboard() {
     fetchData()
   }, [])
 
-  // Обработчик избранного (через API)
-  const handleLike = async (id: string) => {
-    try {
-      const response = await fetch(API_ENDPOINTS.ideas.favorite(id), {
-        method: 'POST'
-      })
-      if (response.ok) {
-        const result = await response.json()
-        const updatedIdea = result.data
-        // Обновляем идею в списке
-        setIdeas(prev => prev.map(idea =>
-          idea.id === id ? { ...idea, isFavorite: updatedIdea.isFavorite, isDisliked: updatedIdea.isDisliked } : idea
-        ))
-        // Обновляем счётчик
-        setFavoritesCount(prev => updatedIdea.isFavorite ? prev + 1 : prev - 1)
+  // Обработчик избранного (localStorage)
+  const handleLike = (id: string) => {
+    setFavorites(prev => {
+      const newFavorites = new Set(prev)
+      if (newFavorites.has(id)) {
+        newFavorites.delete(id)
+      } else {
+        newFavorites.add(id)
+        // Если лайкаем, убираем из дизлайков
+        setDislikes(prevDislikes => {
+          const newDislikes = new Set(prevDislikes)
+          newDislikes.delete(id)
+          saveToStorage(DISLIKES_KEY, newDislikes)
+          return newDislikes
+        })
       }
-    } catch (error) {
-      console.error('Error toggling favorite:', error)
-    }
+      saveToStorage(FAVORITES_KEY, newFavorites)
+      return newFavorites
+    })
   }
 
-  // Обработчик дизлайка (через API)
-  const handleDislike = async (id: string) => {
-    try {
-      const response = await fetch(API_ENDPOINTS.ideas.dislike(id), {
-        method: 'POST'
-      })
-      if (response.ok) {
-        const result = await response.json()
-        const updatedIdea = result.data
-        // Обновляем идею в списке
-        setIdeas(prev => prev.map(idea =>
-          idea.id === id ? { ...idea, isFavorite: updatedIdea.isFavorite, isDisliked: updatedIdea.isDisliked } : idea
-        ))
-        // Если был в избранном и теперь дизлайкнут, уменьшаем счётчик
-        const wasInFavorites = ideas.find(i => i.id === id)?.isFavorite
-        if (wasInFavorites && updatedIdea.isDisliked) {
-          setFavoritesCount(prev => prev - 1)
-        }
+  // Обработчик дизлайка (localStorage)
+  const handleDislike = (id: string) => {
+    setDislikes(prev => {
+      const newDislikes = new Set(prev)
+      if (newDislikes.has(id)) {
+        newDislikes.delete(id)
+      } else {
+        newDislikes.add(id)
+        // Если дизлайкаем, убираем из избранного
+        setFavorites(prevFavorites => {
+          const newFavorites = new Set(prevFavorites)
+          newFavorites.delete(id)
+          saveToStorage(FAVORITES_KEY, newFavorites)
+          return newFavorites
+        })
       }
-    } catch (error) {
-      console.error('Error toggling dislike:', error)
-    }
+      saveToStorage(DISLIKES_KEY, newDislikes)
+      return newDislikes
+    })
   }
 
   const handleChatClick = () => {
@@ -152,9 +170,9 @@ export default function Dashboard() {
   const filteredIdeas = useMemo(() => {
     let result = [...allIdeas]
 
-    // Вкладка избранных
+    // Вкладка избранных (используем localStorage)
     if (viewTab === 'favorites') {
-      result = result.filter(idea => idea.isFavorite)
+      result = result.filter(idea => favorites.has(idea.id))
     }
 
     // Фильтр по категории
@@ -167,11 +185,13 @@ export default function Dashboard() {
       result = result.filter(idea => idea.regions?.[selectedRegion])
     }
 
-    // Сортировка (дизлайкнутые уже в конце от API, но добавим на всякий случай)
+    // Сортировка (дизлайкнутые в конце - из localStorage)
     result.sort((a, b) => {
       // Дизлайкнутые всегда в конце
-      if (a.isDisliked && !b.isDisliked) return 1
-      if (!a.isDisliked && b.isDisliked) return -1
+      const aDisliked = dislikes.has(a.id)
+      const bDisliked = dislikes.has(b.id)
+      if (aDisliked && !bDisliked) return 1
+      if (!aDisliked && bDisliked) return -1
 
       // Затем основная сортировка
       if (sortBy === 'score') {
@@ -182,7 +202,7 @@ export default function Dashboard() {
     })
 
     return result
-  }, [allIdeas, viewTab, selectedCategory, selectedRegion, sortBy])
+  }, [allIdeas, viewTab, selectedCategory, selectedRegion, sortBy, favorites, dislikes])
 
   // Видимые идеи (пагинация)
   const visibleIdeas = filteredIdeas.slice(0, visibleCount)
@@ -213,9 +233,9 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
         {[
           { label: "Всего идей", value: loading ? '...' : allIdeas.length.toString(), change: `${allIdeas.filter(i => i.score >= 7.5).length} топовых`, isPositive: true, icon: <BarChart3 /> },
-          { label: "В избранном", value: favoritesCount.toString(), change: "Ваш выбор", isPositive: true, icon: <Heart /> },
+          { label: "В избранном", value: favorites.size.toString(), change: "Ваш выбор", isPositive: true, icon: <Heart /> },
           { label: "Средняя оценка", value: loading ? '...' : allIdeas.length > 0 ? (allIdeas.reduce((sum, i) => sum + i.score, 0) / allIdeas.length).toFixed(1) : '0', change: "AI анализ", isPositive: true, icon: <Code /> },
-          { label: "Не интересно", value: allIdeas.filter(i => i.isDisliked).length.toString(), change: "Дизлайки", isPositive: false, icon: <ThumbsDown /> },
+          { label: "Не интересно", value: dislikes.size.toString(), change: "Дизлайки", isPositive: false, icon: <ThumbsDown /> },
         ].map((metric, index) => (
           <motion.div
             key={metric.label}
@@ -265,7 +285,7 @@ export default function Dashboard() {
           >
             ❤️ Избранное
             <span className="text-xs bg-background px-2 py-0.5 rounded-full">
-              {favoritesCount}
+              {favorites.size}
             </span>
           </button>
         </div>
@@ -417,8 +437,8 @@ export default function Dashboard() {
                     onDetailsClick={() => handleDetailsClick(idea.id)}
                     onLike={handleLike}
                     onDislike={handleDislike}
-                    isLiked={idea.isFavorite}
-                    isDisliked={idea.isDisliked}
+                    isLiked={favorites.has(idea.id)}
+                    isDisliked={dislikes.has(idea.id)}
                   />
                 ))}
               </AnimatePresence>
