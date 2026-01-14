@@ -74,6 +74,70 @@ def init_db():
     # Create all tables
     Base.metadata.create_all(bind=engine)
 
+    # Run migrations for new columns
+    run_migrations()
+
+
+def run_migrations():
+    """
+    Run database migrations to add new columns
+    """
+    from sqlalchemy import text
+
+    with engine.connect() as conn:
+        # Check and add is_favorite column
+        try:
+            conn.execute(text("""
+                ALTER TABLE ideas ADD COLUMN IF NOT EXISTS is_favorite INTEGER DEFAULT 0
+            """))
+            conn.commit()
+        except Exception as e:
+            # Column might already exist or different DB syntax
+            conn.rollback()
+            try:
+                # Try without IF NOT EXISTS for older PostgreSQL
+                result = conn.execute(text("""
+                    SELECT column_name FROM information_schema.columns
+                    WHERE table_name = 'ideas' AND column_name = 'is_favorite'
+                """))
+                if not result.fetchone():
+                    conn.execute(text("ALTER TABLE ideas ADD COLUMN is_favorite INTEGER DEFAULT 0"))
+                    conn.commit()
+            except:
+                pass
+
+        # Check and add is_disliked column
+        try:
+            conn.execute(text("""
+                ALTER TABLE ideas ADD COLUMN IF NOT EXISTS is_disliked INTEGER DEFAULT 0
+            """))
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            try:
+                result = conn.execute(text("""
+                    SELECT column_name FROM information_schema.columns
+                    WHERE table_name = 'ideas' AND column_name = 'is_disliked'
+                """))
+                if not result.fetchone():
+                    conn.execute(text("ALTER TABLE ideas ADD COLUMN is_disliked INTEGER DEFAULT 0"))
+                    conn.commit()
+            except:
+                pass
+
+        # Create indexes
+        try:
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_ideas_is_favorite ON ideas(is_favorite)"))
+            conn.commit()
+        except:
+            pass
+
+        try:
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_ideas_is_disliked ON ideas(is_disliked)"))
+            conn.commit()
+        except:
+            pass
+
 
 def drop_db():
     """
