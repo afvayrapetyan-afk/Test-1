@@ -163,8 +163,8 @@ class Idea(Base):
             "status": self.status,
             "analyzed_at": self.analyzed_at.isoformat() if self.analyzed_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-            "isFavorite": bool(self.is_favorite),
-            "isDisliked": bool(self.is_disliked)
+            "isFavorite": bool(getattr(self, 'is_favorite', 0) or 0),
+            "isDisliked": bool(getattr(self, 'is_disliked', 0) or 0)
         }
 
     def to_dict_detailed(self):

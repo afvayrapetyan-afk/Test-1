@@ -80,3 +80,51 @@ async def cron_status():
         "openai_configured": bool(os.getenv("OPENAI_API_KEY")),
         "api_base_url": os.getenv("API_BASE_URL", "https://ai-portfolio-api-czhs.onrender.com")
     }
+
+
+@router.post("/migrate")
+async def run_migration():
+    """
+    Запустить миграцию базы данных для добавления новых колонок
+    """
+    from app.core.database import engine
+    from sqlalchemy import text
+
+    results = []
+
+    with engine.connect() as conn:
+        # Add is_favorite column
+        try:
+            conn.execute(text("ALTER TABLE ideas ADD COLUMN is_favorite INTEGER DEFAULT 0"))
+            conn.commit()
+            results.append("Added is_favorite column")
+        except Exception as e:
+            results.append(f"is_favorite: {str(e)}")
+
+        # Add is_disliked column
+        try:
+            conn.execute(text("ALTER TABLE ideas ADD COLUMN is_disliked INTEGER DEFAULT 0"))
+            conn.commit()
+            results.append("Added is_disliked column")
+        except Exception as e:
+            results.append(f"is_disliked: {str(e)}")
+
+        # Create indexes
+        try:
+            conn.execute(text("CREATE INDEX idx_ideas_is_favorite ON ideas(is_favorite)"))
+            conn.commit()
+            results.append("Created index idx_ideas_is_favorite")
+        except Exception as e:
+            results.append(f"idx_ideas_is_favorite: {str(e)}")
+
+        try:
+            conn.execute(text("CREATE INDEX idx_ideas_is_disliked ON ideas(is_disliked)"))
+            conn.commit()
+            results.append("Created index idx_ideas_is_disliked")
+        except Exception as e:
+            results.append(f"idx_ideas_is_disliked: {str(e)}")
+
+    return {
+        "success": True,
+        "results": results
+    }

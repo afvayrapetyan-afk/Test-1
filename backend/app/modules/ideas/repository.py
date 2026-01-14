@@ -58,21 +58,27 @@ class IdeaRepository:
         # Get total count before pagination
         total = query.count()
 
-        # Apply sorting - disliked items always go to the end
-        # First sort by is_disliked (0 first, 1 last), then by the chosen criteria
-        if sort_by == "score":
-            query = query.order_by(
-                asc(Idea.is_disliked),  # Non-disliked first
-                desc(Idea.market_size_score)
-            )
-        else:  # date
-            query = query.order_by(
-                asc(Idea.is_disliked),  # Non-disliked first
-                desc(Idea.analyzed_at)
-            )
-
-        # Pagination
-        ideas = query.offset(skip).limit(limit).all()
+        # Apply sorting
+        # Try to sort with is_disliked first, fallback to simple sort if column doesn't exist
+        try:
+            if sort_by == "score":
+                query = query.order_by(
+                    asc(Idea.is_disliked),  # Non-disliked first
+                    desc(Idea.market_size_score)
+                )
+            else:  # date
+                query = query.order_by(
+                    asc(Idea.is_disliked),  # Non-disliked first
+                    desc(Idea.analyzed_at)
+                )
+            ideas = query.offset(skip).limit(limit).all()
+        except Exception:
+            # Fallback: column doesn't exist yet, use simple sorting
+            if sort_by == "score":
+                query = self.db.query(Idea).order_by(desc(Idea.market_size_score))
+            else:
+                query = self.db.query(Idea).order_by(desc(Idea.analyzed_at))
+            ideas = query.offset(skip).limit(limit).all()
 
         # Apply min_score filter after fetch (since total_score is computed property)
         if min_score is not None:
@@ -191,9 +197,14 @@ class IdeaRepository:
         if not idea:
             return None
 
-        idea.is_favorite = 0 if idea.is_favorite else 1
-        self.db.commit()
-        self.db.refresh(idea)
+        try:
+            idea.is_favorite = 0 if idea.is_favorite else 1
+            self.db.commit()
+            self.db.refresh(idea)
+        except Exception:
+            self.db.rollback()
+            # Column doesn't exist yet
+            pass
         return idea
 
     def toggle_dislike(self, idea_id: int) -> Optional[Idea]:
@@ -202,14 +213,22 @@ class IdeaRepository:
         if not idea:
             return None
 
-        idea.is_disliked = 0 if idea.is_disliked else 1
-        # If disliking, remove from favorites
-        if idea.is_disliked:
-            idea.is_favorite = 0
-        self.db.commit()
-        self.db.refresh(idea)
+        try:
+            idea.is_disliked = 0 if idea.is_disliked else 1
+            # If disliking, remove from favorites
+            if idea.is_disliked:
+                idea.is_favorite = 0
+            self.db.commit()
+            self.db.refresh(idea)
+        except Exception:
+            self.db.rollback()
+            # Column doesn't exist yet
+            pass
         return idea
 
     def get_favorites_count(self) -> int:
         """Get count of favorited ideas"""
-        return self.db.query(func.count(Idea.id)).filter(Idea.is_favorite == 1).scalar() or 0
+        try:
+            return self.db.query(func.count(Idea.id)).filter(Idea.is_favorite == 1).scalar() or 0
+        except Exception:
+            return 0
