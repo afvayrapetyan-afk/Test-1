@@ -1,0 +1,52 @@
+name: Daily AI Analysis
+
+on:
+  # Запуск каждый день в 6:00 UTC (9:00 по Москве)
+  schedule:
+    - cron: '0 6 * * *'
+
+  # Возможность запустить вручную
+  workflow_dispatch:
+    inputs:
+      ideas_count:
+        description: 'Number of ideas to generate (3-10)'
+        required: false
+        default: '5'
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Daily Analysis
+        run: |
+          echo "🌅 Starting Daily AI Analysis..."
+          echo "Time: $(date)"
+
+          # Отправляем запрос к API
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.API_BASE_URL }}/api/v1/cron/daily-analysis?ideas_count=${{ github.event.inputs.ideas_count || '5' }}" \
+            -H "Content-Type: application/json" \
+            -H "X-Cron-Secret: ${{ secrets.CRON_SECRET }}" \
+            --max-time 300)
+
+          # Разделяем ответ и код
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "Response code: $http_code"
+          echo "Response body: $body"
+
+          if [ "$http_code" -eq 200 ] || [ "$http_code" -eq 201 ]; then
+            echo "✅ Analysis completed successfully!"
+            echo "$body" | jq '.' 2>/dev/null || echo "$body"
+          else
+            echo "❌ Analysis failed with code: $http_code"
+            exit 1
+          fi
+
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          echo "⚠️ Daily analysis failed!"
+          # Здесь можно добавить отправку уведомления в Telegram/Slack

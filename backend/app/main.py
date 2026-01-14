@@ -12,6 +12,7 @@ from app.core.database import engine, init_db
 from app.modules.trends import router as trends_router
 from app.modules.ideas import router as ideas_router
 from app.modules.agents import router as agents_router
+from app.cron.router import router as cron_router
 
 # Initialize structured logging
 logger = structlog.get_logger()
@@ -79,6 +80,12 @@ app.include_router(
     agents_router.router,
     prefix="/api/v1/agents",
     tags=["Agents"]
+)
+
+app.include_router(
+    cron_router,
+    prefix="/api/v1/cron",
+    tags=["Cron Jobs"]
 )
 
 
