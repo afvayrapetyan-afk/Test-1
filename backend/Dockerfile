@@ -17,11 +17,18 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements
-COPY requirements.txt .
+# Copy requirements (using minimal for faster builds)
+COPY requirements-minimal.txt .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir --user -r requirements.txt
+RUN pip install --no-cache-dir --user -r requirements-minimal.txt
+
+# Install additional production dependencies
+RUN pip install --no-cache-dir --user \
+    sqlalchemy==2.0.27 \
+    psycopg2-binary==2.9.9 \
+    structlog==24.1.0 \
+    alembic==1.13.1
 
 # Stage 2: Runtime
 FROM python:3.11-slim
