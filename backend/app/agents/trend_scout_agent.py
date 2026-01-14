@@ -1,6 +1,8 @@
 """
 Trend Scout Agent
-Discovers emerging trends from various data sources
+Discovers emerging AI trends from various data sources
+
+🎯 ФОКУС: AI-помощники, AI-агенты, автоматизация
 """
 
 from typing import Dict, Any, List
@@ -14,27 +16,55 @@ from app.scrapers.reddit_scraper import RedditScraper
 
 logger = structlog.get_logger()
 
+# AI-focused subreddits for trend discovery
+AI_SUBREDDITS = [
+    "MachineLearning",
+    "artificial",
+    "ChatGPT",
+    "LocalLLaMA",
+    "singularity",
+    "SideProject",
+    "startups",
+    "Entrepreneur",
+    "SaaS",
+    "nocode",
+    "AutomateYourself",
+]
+
+# Keywords for filtering AI-related trends
+AI_KEYWORDS = [
+    "AI", "GPT", "LLM", "agent", "assistant", "bot", "automation",
+    "chatbot", "copilot", "помощник", "агент", "автоматизация",
+    "нейросеть", "искусственный интеллект",
+]
+
 
 class TrendScoutAgent(BaseAgent):
     """
-    Trend Scout Agent - Discovers and analyzes emerging trends
+    Trend Scout Agent - Discovers AI-focused emerging trends
+
+    🎯 ФОКУС:
+    - AI-помощники для бизнеса и физлиц
+    - AI-агенты для автоматизации
+    - Инструменты на базе LLM
+    - Решения реальных проблем с помощью AI
 
     Data sources:
-    - Reddit (r/SideProject, r/startups, r/Entrepreneur)
-    - Google Trends
-    - Product Hunt
-    - Hacker News
-    - Twitter/X
-    - Telegram channels
-    - VK communities
-    - Yandex Wordstat
+    - Reddit (AI & startup subreddits)
+    - Google Trends (AI keywords)
+    - Product Hunt (AI category)
+    - Hacker News (AI news)
+    - Twitter/X (AI discussions)
+    - Telegram channels (AI news RU)
+    - Habr (AI articles)
 
     Process:
-    1. Scrape data from sources
-    2. Clean and deduplicate
-    3. Extract trends using LLM
-    4. Score by engagement
-    5. Store in database
+    1. Scrape data from AI-focused sources
+    2. Filter for AI-related content
+    3. Clean and deduplicate
+    4. Extract trends using LLM
+    5. Score by engagement & AI relevance
+    6. Store in database
     """
 
     def __init__(self, db: Session):
@@ -125,11 +155,11 @@ class TrendScoutAgent(BaseAgent):
 
     async def _discover_from_reddit(self, input_data: Dict[str, Any]) -> List[TrendCreate]:
         """
-        Discover trends from Reddit
+        Discover AI-focused trends from Reddit
 
-        Uses PRAW to scrape hot posts from specified subreddits
+        Uses PRAW to scrape hot posts from AI-related subreddits
         """
-        subreddits = input_data.get("subreddits", ["SideProject", "startups", "Entrepreneur"])
+        subreddits = input_data.get("subreddits", AI_SUBREDDITS)
         limit = input_data.get("limit", 100)
         time_filter = input_data.get("time_filter", "week")
         sort = input_data.get("sort", "hot")
@@ -183,56 +213,78 @@ class TrendScoutAgent(BaseAgent):
 
     async def _generate_reddit_trends_with_llm(self, input_data: Dict[str, Any]) -> List[TrendCreate]:
         """
-        Fallback method: Generate Reddit trends using LLM
+        Generate AI-focused trends using LLM
 
-        Used when Reddit scraper is unavailable or fails
+        🎯 ФОКУС: AI-помощники и агенты для решения реальных проблем
         """
-        subreddits = input_data.get("subreddits", ["SideProject", "startups"])
+        subreddits = input_data.get("subreddits", AI_SUBREDDITS)
         limit = input_data.get("limit", 100)
 
-        num_ideas = max(limit // len(subreddits), 5)  # At least 5 ideas
+        num_ideas = max(limit // max(len(subreddits), 1), 10)  # At least 10 ideas
 
         prompt = f"""
-        Generate exactly {num_ideas} trending business ideas that would be discussed
-        on Reddit subreddits like {', '.join(subreddits)}.
+        🎯 Сгенерируй {num_ideas} АКТУАЛЬНЫХ трендов в сфере AI-помощников и AI-агентов.
 
-        Return a JSON object with a "trends" array. Each trend must have:
-        - title: string (max 100 chars)
-        - description: string (max 500 chars)
-        - category: string (one of: productivity, saas, marketplace, ai, fintech, health, education)
-        - tags: array of strings (3-5 tags)
-        - engagement_score: integer (100-2000)
+        Тренды должны быть основаны на РЕАЛЬНЫХ проблемах, которые обсуждаются на Reddit,
+        Hacker News, Product Hunt и в AI-сообществе.
 
-        Example format:
+        ═══════════════════════════════════════════════════════════════
+        ТРЕБОВАНИЯ К ТРЕНДАМ:
+        ═══════════════════════════════════════════════════════════════
+
+        Каждый тренд должен относиться к одной из категорий:
+        1. 🤖 AI-АССИСТЕНТЫ - помощники для людей
+        2. 🔄 AI-АГЕНТЫ - автономные системы
+        3. 🛠️ AI-ИНСТРУМЕНТЫ - специализированные утилиты
+        4. 📊 AI для БИЗНЕСА - B2B решения
+        5. 👤 AI для ЛИЧНОГО ИСПОЛЬЗОВАНИЯ - B2C решения
+
+        Тренды должны отражать РЕАЛЬНЫЕ проблемы:
+        - Экономия времени
+        - Автоматизация рутины
+        - Принятие решений
+        - Обработка информации
+        - Персонализация
+        - Коммуникация
+
+        ═══════════════════════════════════════════════════════════════
+        ФОРМАТ ОТВЕТА (JSON):
+        ═══════════════════════════════════════════════════════════════
+
         {{
           "trends": [
             {{
-              "title": "AI Code Review Assistant",
-              "description": "Automated code review tool using GPT-4",
+              "title": "AI-ассистент для управления личными финансами",
+              "description": "Автоматический анализ расходов, рекомендации по экономии, прогноз бюджета",
               "category": "ai",
-              "tags": ["AI", "development", "automation"],
-              "engagement_score": 1250
+              "tags": ["AI", "fintech", "personal finance", "assistant"],
+              "engagement_score": 1500,
+              "problem_type": "personal",
+              "ai_type": "assistant"
             }}
           ]
         }}
 
-        Focus on:
-        - AI/ML applications
-        - SaaS products
-        - No-code tools
-        - Developer tools
-        - Side project ideas
+        Категории: ai, saas, fintech, health, education, productivity, automation
 
-        Generate exactly {num_ideas} trends in the "trends" array.
+        ВСЕ НАЗВАНИЯ И ОПИСАНИЯ НА РУССКОМ ЯЗЫКЕ!
         """
 
         response = self.call_llm(
             messages=[
-                {"role": "system", "content": "You are a trend discovery expert."},
+                {
+                    "role": "system",
+                    "content": """Ты эксперт по AI-трендам и продуктам на базе искусственного интеллекта.
+
+Твоя задача - находить РЕАЛЬНЫЕ тренды в сфере AI-помощников и агентов.
+Фокусируйся на проблемах, которые AI действительно может решить.
+
+Отвечай только на русском языке."""
+                },
                 {"role": "user", "content": prompt}
             ],
-            model="gpt-4o-mini",
-            temperature=0.8,
+            model="gpt-4o",  # Better model for trend discovery
+            temperature=0.7,
             json_mode=True
         )
 
