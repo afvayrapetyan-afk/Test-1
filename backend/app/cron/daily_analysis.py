@@ -300,7 +300,23 @@ async def run_daily_analysis(db_session=None, api_base_url: str = None) -> Dict[
 
     if api_base_url:
         async with httpx.AsyncClient(timeout=60.0) as client:
+            # Получаем существующие идеи для проверки дубликатов
+            existing_titles = set()
+            try:
+                response = await client.get(f"{api_base_url}/api/v1/ideas/?limit=100")
+                if response.status_code == 200:
+                    existing = response.json()
+                    existing_titles = {idea["title"].lower().strip() for idea in existing.get("items", [])}
+                    logger.info(f"Loaded {len(existing_titles)} existing ideas for duplicate check")
+            except Exception as e:
+                logger.warning(f"Could not load existing ideas: {e}")
+
             for idea in result["ideas"]:
+                # Проверка на дубликаты
+                if idea["title"].lower().strip() in existing_titles:
+                    logger.info(f"⏭️ Skipping duplicate: {idea['title']}")
+                    continue
+
                 try:
                     # Формируем данные для API
                     idea_data = {
