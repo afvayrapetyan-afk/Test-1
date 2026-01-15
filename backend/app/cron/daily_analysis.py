@@ -203,13 +203,13 @@ class DailyAnalysisAgent:
 ]
 
 ⚠️ ВАЖНО:
+- ОБЯЗАТЕЛЬНО создай РОВНО {count} идей - не больше, не меньше
 - ВСЕ тексты ТОЛЬКО на русском языке
-- Оценки от 0 до 100 (реалистичные, не завышенные)
-- Анализ должен быть ГЛУБОКИМ и КОНКРЕТНЫМ
-- Не повторяй очевидные/избитые идеи
+- Оценки от 60 до 90 (реалистичные)
+- Каждая идея должна быть УНИКАЛЬНОЙ
 - Учитывай актуальность на {datetime.now().strftime('%B %Y')}
 
-Верни ТОЛЬКО JSON массив без дополнительного текста.
+Верни JSON объект в формате: {{"ideas": [массив из {count} идей]}}
 """
 
         try:
@@ -290,7 +290,7 @@ async def run_daily_analysis(db_session=None, api_base_url: str = None) -> Dict[
         Результат анализа
     """
     agent = DailyAnalysisAgent()
-    result = await agent.run(ideas_count=5, min_score=65)
+    result = await agent.run(ideas_count=5, min_score=50)  # Снижен порог для большего количества идей
 
     if result["status"] != "success" or not result["ideas"]:
         return result
