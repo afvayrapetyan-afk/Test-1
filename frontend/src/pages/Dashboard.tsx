@@ -83,8 +83,9 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Увеличен таймаут до 30 сек - Render "просыпается" медленно
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 5000)
+        const timeoutId = setTimeout(() => controller.abort(), 30000)
 
         const ideasResponse = await fetch(API_ENDPOINTS.ideas.list, {
           signal: controller.signal
@@ -100,10 +101,12 @@ export default function Dashboard() {
         if (ideasData.items && ideasData.items.length > 0) {
           setIdeas(ideasData.items)
         } else {
+          // API пустой - используем mock только если нет данных
           setUseMockData(true)
         }
       } catch (error) {
         console.error('Error loading data:', error)
+        // Только при реальной ошибке используем mock
         setUseMockData(true)
       } finally {
         setLoading(false)
