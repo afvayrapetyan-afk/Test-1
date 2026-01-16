@@ -44,6 +44,7 @@ type ViewTab = 'all' | 'favorites'
 // Ключи для localStorage
 const FAVORITES_KEY = 'idea_favorites'
 const DISLIKES_KEY = 'idea_dislikes'
+const IDEAS_CACHE_KEY = 'ideas_cache'
 
 // Загрузка из localStorage
 const loadFromStorage = (key: string): Set<string> => {
@@ -60,12 +61,45 @@ const saveToStorage = (key: string, data: Set<string>) => {
   localStorage.setItem(key, JSON.stringify([...data]))
 }
 
+// Загрузка идей из кеша
+const loadCachedIdeas = (): Idea[] => {
+  try {
+    const cached = localStorage.getItem(IDEAS_CACHE_KEY)
+    if (cached) {
+      const { ideas, timestamp } = JSON.parse(cached)
+      // Кеш валиден 24 часа
+      if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
+        return ideas
+      }
+    }
+  } catch {
+    // Ignore errors
+  }
+  return []
+}
+
+// Сохранение идей в кеш
+const saveCachedIdeas = (ideas: Idea[]) => {
+  try {
+    localStorage.setItem(IDEAS_CACHE_KEY, JSON.stringify({
+      ideas,
+      timestamp: Date.now()
+    }))
+  } catch {
+    // Ignore errors (quota exceeded, etc.)
+  }
+}
+
 export default function Dashboard() {
   const { openChat } = useChat()
   const navigate = useNavigate()
-  const [ideas, setIdeas] = useState<Idea[]>([])
+
+  // Загружаем кеш сразу при инициализации
+  const [ideas, setIdeas] = useState<Idea[]>(() => loadCachedIdeas())
   const [loading, setLoading] = useState(true)
   const [useMockData, setUseMockData] = useState(false)
+  const [loadingTime, setLoadingTime] = useState(0)
+  const [usingCache, setUsingCache] = useState(() => loadCachedIdeas().length > 0)
 
   // Личные лайки/дизлайки (localStorage)
   const [favorites, setFavorites] = useState<Set<string>>(() => loadFromStorage(FAVORITES_KEY))
@@ -100,14 +134,18 @@ export default function Dashboard() {
 
         if (ideasData.items && ideasData.items.length > 0) {
           setIdeas(ideasData.items)
-        } else {
-          // API пустой - используем mock только если нет данных
+          saveCachedIdeas(ideasData.items) // Сохраняем в кеш
+          setUsingCache(false)
+        } else if (ideas.length === 0) {
+          // API пустой и нет кеша - используем mock
           setUseMockData(true)
         }
       } catch (error) {
         console.error('Error loading data:', error)
-        // Только при реальной ошибке используем mock
-        setUseMockData(true)
+        // При ошибке - используем кеш если есть, иначе mock
+        if (ideas.length === 0) {
+          setUseMockData(true)
+        }
       } finally {
         setLoading(false)
       }
@@ -115,6 +153,21 @@ export default function Dashboard() {
 
     fetchData()
   }, [])
+
+  // Счётчик времени загрузки
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | undefined
+    if (loading) {
+      interval = setInterval(() => {
+        setLoadingTime(prev => prev + 1)
+      }, 1000)
+    } else {
+      setLoadingTime(0)
+    }
+    return () => {
+      if (interval) clearInterval(interval)
+    }
+  }, [loading])
 
   // Обработчик избранного (localStorage)
   const handleLike = (id: string) => {
@@ -407,10 +460,45 @@ export default function Dashboard() {
           </span>
         </div>
 
+        {/* Индикатор обновления (когда есть кеш) */}
+        {loading && usingCache && (
+          <div className="flex items-center gap-2 text-xs text-text-tertiary mb-3 px-1">
+            <div className="w-3 h-3 border-2 border-accent-blue border-t-transparent rounded-full animate-spin"></div>
+            <span>Обновление данных...</span>
+          </div>
+        )}
+
         {/* Ideas Grid */}
-        {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="text-text-secondary">Загрузка данных...</div>
+        {loading && !usingCache ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            {/* Анимированный спиннер */}
+            <div className="relative w-16 h-16 mb-6">
+              <div className="absolute inset-0 border-4 border-border rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-accent-blue rounded-full border-t-transparent animate-spin"></div>
+              <div className="absolute inset-0 flex items-center justify-center text-2xl">
+                🚀
+              </div>
+            </div>
+
+            {/* Сообщение */}
+            <div className="text-lg font-medium text-text-primary mb-2">
+              {loadingTime < 5 ? 'Загрузка идей...' : 'Сервер просыпается...'}
+            </div>
+
+            {/* Пояснение */}
+            <div className="text-sm text-text-secondary max-w-xs">
+              {loadingTime < 5
+                ? 'Получаем данные с сервера'
+                : 'Бесплатный сервер засыпает после 15 мин. неактивности. Первая загрузка занимает до 30 сек.'
+              }
+            </div>
+
+            {/* Таймер */}
+            {loadingTime >= 5 && (
+              <div className="mt-4 text-xs text-text-tertiary">
+                Ожидание: {loadingTime} сек.
+              </div>
+            )}
           </div>
         ) : filteredIdeas.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
