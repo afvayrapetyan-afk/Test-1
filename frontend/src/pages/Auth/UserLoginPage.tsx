@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react'
+import { Mail, Lock, AlertCircle, Eye, EyeOff, Sparkles } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { motion } from 'framer-motion'
 
@@ -10,6 +10,7 @@ export default function UserLoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [focusedField, setFocusedField] = useState<string | null>(null)
 
   const { login } = useAuth()
   const navigate = useNavigate()
@@ -31,131 +32,201 @@ export default function UserLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
-      >
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-4">
-            <span className="text-5xl">🚀</span>
-          </div>
-          <h1 className="text-3xl font-bold mb-2">Добро пожаловать!</h1>
-          <p className="text-text-secondary">
-            Войдите в AI Portfolio Manager
-          </p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      {/* Premium Dark Background with Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950" />
 
-        {/* Form Card */}
-        <div className="bg-surface border border-border rounded-2xl p-8 shadow-lg">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-medium mb-2">
+      {/* Subtle Animated Glow Effects */}
+      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-emerald-600/8 rounded-full blur-3xl animate-pulse delay-1000" />
+
+      {/* Grid Pattern Overlay */}
+      <div
+        className="absolute inset-0 opacity-[0.02]"
+        style={{
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                           linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+          backgroundSize: '50px 50px'
+        }}
+      />
+
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        className="w-full max-w-md px-6 relative z-10"
+      >
+        {/* Logo & Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-center mb-10"
+        >
+          {/* Premium Logo */}
+          <div className="inline-flex items-center justify-center mb-6">
+            <div className="relative">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/25">
+                <Sparkles className="w-8 h-8 text-white" />
+              </div>
+              <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 opacity-30 blur-lg" />
+            </div>
+          </div>
+
+          <h1 className="text-3xl font-semibold text-white tracking-tight mb-2">
+            Sber AI
+          </h1>
+          <p className="text-slate-400 text-sm tracking-wide">
+            Интеллектуальная платформа управления
+          </p>
+        </motion.div>
+
+        {/* Form Card with Glassmorphism */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="backdrop-blur-xl bg-white/[0.03] border border-white/10 rounded-3xl p-8 shadow-2xl"
+        >
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email Field */}
+            <div className="space-y-2">
+              <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider">
                 Email
               </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-tertiary" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="vardana@example.com"
-                  className="w-full pl-10 pr-4 py-3 bg-background border border-border rounded-lg focus:ring-2 focus:ring-accent-purple/50 focus:border-accent-purple outline-none transition"
-                  required
-                />
+              <div className={`relative group transition-all duration-300 ${focusedField === 'email' ? 'transform scale-[1.02]' : ''}`}>
+                <div className={`absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/20 to-emerald-600/20 opacity-0 transition-opacity duration-300 blur-xl ${focusedField === 'email' ? 'opacity-100' : ''}`} />
+                <div className="relative">
+                  <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-300 ${focusedField === 'email' ? 'text-emerald-400' : 'text-slate-500'}`} />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onFocus={() => setFocusedField('email')}
+                    onBlur={() => setFocusedField(null)}
+                    placeholder="your@email.com"
+                    className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:border-emerald-500/50 focus:bg-slate-900/80 outline-none transition-all duration-300"
+                    required
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Password */}
-            <div>
-              <label className="block text-sm font-medium mb-2">
+            {/* Password Field */}
+            <div className="space-y-2">
+              <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider">
                 Пароль
               </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-tertiary" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full pl-10 pr-12 py-3 bg-background border border-border rounded-lg focus:ring-2 focus:ring-accent-purple/50 focus:border-accent-purple outline-none transition"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary transition-colors"
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
+              <div className={`relative group transition-all duration-300 ${focusedField === 'password' ? 'transform scale-[1.02]' : ''}`}>
+                <div className={`absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/20 to-emerald-600/20 opacity-0 transition-opacity duration-300 blur-xl ${focusedField === 'password' ? 'opacity-100' : ''}`} />
+                <div className="relative">
+                  <Lock className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-300 ${focusedField === 'password' ? 'text-emerald-400' : 'text-slate-500'}`} />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onFocus={() => setFocusedField('password')}
+                    onBlur={() => setFocusedField(null)}
+                    placeholder="••••••••"
+                    className="w-full pl-12 pr-14 py-4 bg-slate-900/50 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:border-emerald-500/50 focus:bg-slate-900/80 outline-none transition-all duration-300"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-emerald-400 transition-colors duration-300"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Error Message */}
             {error && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-xl"
               >
-                <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
-                <span className="text-sm text-red-600 dark:text-red-400">
-                  {error}
-                </span>
+                <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+                <span className="text-sm text-red-400">{error}</span>
               </motion.div>
             )}
 
-            {/* Forgot Password Link */}
-            <div className="text-right">
+            {/* Forgot Password */}
+            <div className="flex justify-end">
               <Link
                 to="/forgot-password"
-                className="text-sm text-accent-purple hover:text-accent-pink transition-colors"
+                className="text-sm text-slate-400 hover:text-emerald-400 transition-colors duration-300"
               >
                 Забыли пароль?
               </Link>
             </div>
 
             {/* Submit Button */}
-            <button
+            <motion.button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 bg-gradient-to-r from-accent-purple to-accent-pink text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="relative w-full py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold rounded-xl overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-500/25 transition-shadow duration-300 hover:shadow-emerald-500/40"
             >
-              {isLoading ? 'Вход...' : 'Войти'}
-            </button>
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <span className="relative flex items-center justify-center gap-2">
+                {isLoading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Вход...
+                  </>
+                ) : (
+                  'Войти'
+                )}
+              </span>
+            </motion.button>
           </form>
 
-          {/* Register Link */}
-          <div className="mt-6 text-center">
-            <p className="text-sm text-text-secondary">
-              Нет аккаунта?{' '}
-              <Link
-                to="/register"
-                className="text-accent-purple hover:text-accent-pink font-medium transition-colors"
-              >
-                Зарегистрируйтесь
-              </Link>
-            </p>
+          {/* Divider */}
+          <div className="flex items-center my-8">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent" />
           </div>
-        </div>
 
-        {/* Demo Credentials */}
-        <div className="mt-6 p-4 bg-accent-blue/10 border border-accent-blue/20 rounded-lg">
-          <p className="text-xs text-text-secondary text-center mb-2">
-            <strong>Демо-доступ:</strong>
+          {/* Register Link */}
+          <p className="text-center text-sm text-slate-400">
+            Нет аккаунта?{' '}
+            <Link
+              to="/register"
+              className="text-emerald-400 hover:text-emerald-300 font-medium transition-colors duration-300"
+            >
+              Зарегистрируйтесь
+            </Link>
           </p>
-          <p className="text-xs text-text-secondary text-center">
-            Email: vardana@example.com<br />
-            Пароль: demo123
+        </motion.div>
+
+        {/* Demo Credentials - Subtle */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="mt-8 p-4 rounded-2xl bg-slate-900/50 border border-slate-800/50 backdrop-blur-sm"
+        >
+          <p className="text-xs text-slate-500 text-center mb-2 uppercase tracking-wider">
+            Демо-доступ
           </p>
-        </div>
+          <p className="text-xs text-slate-400 text-center font-mono">
+            vardana@example.com / demo123
+          </p>
+        </motion.div>
+
+        {/* Footer */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+          className="text-center text-xs text-slate-600 mt-8"
+        >
+          © 2024 Sber AI. Все права защищены.
+        </motion.p>
       </motion.div>
     </div>
   )

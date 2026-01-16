@@ -7,62 +7,110 @@ from fastapi import APIRouter, HTTPException, Query, Header
 from typing import Optional
 import os
 import asyncio
+from datetime import datetime
+import structlog
 
 from app.cron.daily_analysis import run_daily_analysis
 
 router = APIRouter()
+logger = structlog.get_logger()
 
 # Секретный ключ для защиты cron endpoints
 CRON_SECRET = os.getenv("CRON_SECRET", "your-secret-key-change-me")
 
+# Хранение статуса последнего запуска
+_last_run_status = {
+    "running": False,
+    "last_started": None,
+    "last_completed": None,
+    "last_result": None
+}
 
-@router.post("/daily-analysis")
-async def trigger_daily_analysis(
-    ideas_count: int = Query(5, ge=3, le=10, description="Количество идей для генерации"),
-    x_cron_secret: Optional[str] = Header(None, alias="X-Cron-Secret")
-):
-    """
-    Запустить ежедневный анализ рынка и генерацию бизнес-идей
 
-    Этот endpoint:
-    1. Анализирует текущие тренды AI рынка
-    2. Генерирует 3-5 новых бизнес-идей
-    3. Сохраняет идеи с высокими оценками в базу данных
-
-    Защищён секретным ключом X-Cron-Secret
-    """
-    # Проверка ключа отключена для простоты - endpoint защищён через obscurity
-    # TODO: включить после настройки cron-job.org с правильным header
-    pass
+async def _run_analysis_background():
+    """Фоновая задача для генерации идей"""
+    global _last_run_status
 
     try:
-        # Определяем URL API
         api_base_url = os.getenv(
             "API_BASE_URL",
             "https://ai-portfolio-api-czhs.onrender.com"
         )
 
-        # Запускаем анализ
-        result = await run_daily_analysis(
-            api_base_url=api_base_url
-        )
+        result = await run_daily_analysis(api_base_url=api_base_url)
+
+        _last_run_status["last_completed"] = datetime.now().isoformat()
+        _last_run_status["last_result"] = {
+            "success": True,
+            "ideas_saved": result.get("saved_count", 0),
+            "ideas_generated": result.get("ideas_generated", 0)
+        }
+        logger.info("✅ Background analysis completed", result=_last_run_status["last_result"])
+
+    except Exception as e:
+        _last_run_status["last_completed"] = datetime.now().isoformat()
+        _last_run_status["last_result"] = {"success": False, "error": str(e)}
+        logger.error("❌ Background analysis failed", error=str(e))
+    finally:
+        _last_run_status["running"] = False
+
+
+@router.post("/daily-analysis")
+async def trigger_daily_analysis(
+    ideas_count: int = Query(5, ge=3, le=10, description="Количество идей для генерации"),
+    x_cron_secret: Optional[str] = Header(None, alias="X-Cron-Secret"),
+    wait: bool = Query(False, description="Ждать завершения (для тестирования)")
+):
+    """
+    Запустить ежедневный анализ рынка и генерацию бизнес-идей
+
+    По умолчанию запускает в фоне и сразу возвращает ответ (для cron-job.org).
+    Добавьте ?wait=true чтобы дождаться результата.
+    """
+    global _last_run_status
+
+    # Если уже запущено - не запускать повторно
+    if _last_run_status["running"]:
+        return {
+            "success": True,
+            "message": "Analysis already running",
+            "started_at": _last_run_status["last_started"]
+        }
+
+    _last_run_status["running"] = True
+    _last_run_status["last_started"] = datetime.now().isoformat()
+
+    if wait:
+        # Синхронный режим - ждём результат (для тестирования)
+        try:
+            api_base_url = os.getenv(
+                "API_BASE_URL",
+                "https://ai-portfolio-api-czhs.onrender.com"
+            )
+            result = await run_daily_analysis(api_base_url=api_base_url)
+            _last_run_status["running"] = False
+            _last_run_status["last_completed"] = datetime.now().isoformat()
+            _last_run_status["last_result"] = {"success": True, "data": result}
+            return {"success": True, "data": result}
+        except Exception as e:
+            _last_run_status["running"] = False
+            raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+    else:
+        # Асинхронный режим - запускаем в фоне, сразу отвечаем
+        asyncio.create_task(_run_analysis_background())
 
         return {
             "success": True,
-            "data": result
+            "message": "Analysis started in background",
+            "started_at": _last_run_status["last_started"],
+            "check_status": "/api/v1/cron/status"
         }
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Analysis failed: {str(e)}"
-        )
 
 
 @router.get("/status")
 async def cron_status():
     """
-    Проверить статус cron системы
+    Проверить статус cron системы и последний запуск
     """
     return {
         "status": "active",
@@ -74,7 +122,13 @@ async def cron_status():
             }
         ],
         "openai_configured": bool(os.getenv("OPENAI_API_KEY")),
-        "api_base_url": os.getenv("API_BASE_URL", "https://ai-portfolio-api-czhs.onrender.com")
+        "api_base_url": os.getenv("API_BASE_URL", "https://ai-portfolio-api-czhs.onrender.com"),
+        "last_run": {
+            "is_running": _last_run_status["running"],
+            "started_at": _last_run_status["last_started"],
+            "completed_at": _last_run_status["last_completed"],
+            "result": _last_run_status["last_result"]
+        }
     }
 
 
